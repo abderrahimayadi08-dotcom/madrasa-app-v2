@@ -22,7 +22,6 @@ class FirestoreService {
     return _firestore
         .collection('requests')
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots();
   }
 
@@ -30,8 +29,6 @@ class FirestoreService {
     return _firestore
         .collection('requests')
         .where('assignedRole', isEqualTo: role)
-        .orderBy('priority', descending: true)
-        .orderBy('createdAt', descending: true)
         .snapshots();
   }
 

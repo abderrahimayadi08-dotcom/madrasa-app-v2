@@ -106,9 +106,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 var docs = snapshot.data!.docs.toList();
-                docs.sort((a, b) =>
-                    _priorityValue(a['priority']).compareTo(
-                        _priorityValue(b['priority'])));
+                docs.sort((a, b) {
+                  final p = _priorityValue(a['priority'])
+                      .compareTo(_priorityValue(b['priority']));
+                  if (p != 0) return p;
+                  return (b['createdAt'] as String)
+                      .compareTo(a['createdAt'] as String);
+                });
                 if (_filter != 'all') {
                   docs = docs.where((d) => d['status'] == _filter).toList();
                 }

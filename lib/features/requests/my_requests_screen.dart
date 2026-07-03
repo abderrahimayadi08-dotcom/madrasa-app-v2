@@ -84,7 +84,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final docs = snapshot.data!.docs;
+                var docs = snapshot.data!.docs.toList();
+                docs.sort((a, b) => (b['createdAt'] as String)
+                    .compareTo(a['createdAt'] as String));
                 final requests = docs.where((d) {
                   if (_filter == 'all') return true;
                   return d['status'] == _filter;
