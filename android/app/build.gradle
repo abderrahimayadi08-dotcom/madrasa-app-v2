@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.madrasa.app"
+    namespace = "com.example.madrasa_app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.madrasa.app"
+        applicationId = "com.example.madrasa_app"
         minSdk = 23
         targetSdk = 36
         versionCode = 1
