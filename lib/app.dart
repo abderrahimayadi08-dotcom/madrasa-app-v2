@@ -11,7 +11,7 @@ class MadrasaApp extends StatelessWidget {
       title: 'المدرسة القرآنية',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      darkTheme: AppTheme.light,
       themeMode: ThemeMode.light,
       home: const LoginScreen(),
     );

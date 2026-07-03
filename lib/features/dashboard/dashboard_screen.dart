@@ -85,7 +85,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               stream: _firestoreService.getRequestsByRole(_roleLabel),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return const Center(child: Text('حدث خطأ'));
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 48, color: Colors.grey[400]),
+                        const SizedBox(height: 12),
+                        const Text('حدث خطأ في تحميل الطلبات'),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: () => setState(() {}),
+                          child: const Text('إعادة المحاولة'),
+                        ),
+                      ],
+                    ),
+                  );
                 }
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -98,15 +113,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   docs = docs.where((d) => d['status'] == _filter).toList();
                 }
                 if (docs.isEmpty) {
-                  return const Center(child: Text('لا توجد طلبات'));
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.inbox_outlined,
+                            size: 64, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'لا توجد طلبات للمراجعة',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'عندما يرسل الأعضاء طلبات جديدة، ستظهر هنا',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  );
                 }
-                return ListView.builder(
-                  itemCount: docs.length,
-                  padding: const EdgeInsets.only(bottom: 16),
-                  itemBuilder: (_, i) {
-                    final r = docs[i];
-                    return _requestCard(r);
-                  },
+                return RefreshIndicator(
+                  onRefresh: () async {},
+                  child: ListView.builder(
+                    itemCount: docs.length,
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemBuilder: (_, i) {
+                      final r = docs[i];
+                      return _requestCard(r);
+                    },
+                  ),
                 );
               },
             ),
@@ -127,6 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => Navigator.push(
           context,
@@ -137,116 +175,103 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: priColor,
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          children: [
+            Container(height: 3, color: priColor),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              r['itemName'] as String,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      Expanded(
+                        child: Text(
+                          r['itemName'] as String,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: statColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              AppTheme.statusLabel(status),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: statColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(Icons.person_outline,
-                              size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(r['userName'] as String,
-                              style: TextStyle(
-                                  fontSize: 13, color: Colors.grey[600])),
-                          const SizedBox(width: 12),
-                          Icon(Icons.flag_outlined,
-                              size: 14, color: priColor),
-                          const SizedBox(width: 4),
-                          Text(AppTheme.priorityLabel(priority),
-                              style: TextStyle(
-                                  fontSize: 13, color: priColor)),
-                          if (priceText != null) ...[
-                            const SizedBox(width: 12),
-                            Icon(Icons.attach_money,
-                                size: 14, color: Colors.grey[600]),
-                            const SizedBox(width: 4),
-                            Text(priceText,
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600])),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.calendar_today,
-                              size: 12, color: Colors.grey[500]),
-                          const SizedBox(width: 4),
-                          Text(
-                            DateFormat.yMd().format(
-                                DateTime.parse(r['createdAt'])),
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey[500]),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          AppTheme.statusLabel(status),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: statColor,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            r['category'] == 'purchase'
-                                ? Icons.shopping_cart
-                                : Icons.build,
-                            size: 12,
-                            color: Colors.grey[500],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            r['category'] == 'purchase' ? 'شراء' : 'صيانة',
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey[500]),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.person_outline,
+                          size: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Text(r['userName'] as String,
+                          style: TextStyle(
+                              fontSize: 13, color: Colors.grey[600])),
+                      const SizedBox(width: 12),
+                      Icon(Icons.flag_outlined,
+                          size: 14, color: priColor),
+                      const SizedBox(width: 4),
+                      Text(AppTheme.priorityLabel(priority),
+                          style: TextStyle(
+                              fontSize: 13, color: priColor)),
+                      if (priceText != null) ...[
+                        const SizedBox(width: 12),
+                        Icon(Icons.attach_money,
+                            size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(priceText,
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600])),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today,
+                          size: 12, color: Colors.grey[500]),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat.yMd().format(
+                            DateTime.parse(r['createdAt'])),
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey[500]),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        r['category'] == 'purchase'
+                            ? Icons.shopping_cart
+                            : Icons.build,
+                        size: 12,
+                        color: Colors.grey[500],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        r['category'] == 'purchase' ? 'شراء' : 'صيانة',
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

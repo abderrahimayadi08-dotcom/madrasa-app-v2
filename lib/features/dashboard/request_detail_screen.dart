@@ -21,6 +21,34 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   final _firestoreService = FirestoreService();
   bool _loading = false;
 
+  void _confirmAndUpdate(String status) {
+    final labels = {
+      'approved': 'موافقة',
+      'rejected': 'رفض',
+      'hold': 'تعليق',
+    };
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('${labels[status]} الطلب'),
+        content: Text('هل أنت متأكد من ${_actionLabel(status)} هذا الطلب؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _updateStatus(status);
+            },
+            child: Text(labels[status]!),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _updateStatus(String status) async {
     setState(() => _loading = true);
     try {
@@ -180,7 +208,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        onPressed: () => _updateStatus('approved'),
+                        onPressed: () => _confirmAndUpdate('approved'),
                         icon: const Icon(Icons.check),
                         label: const Text('موافقة'),
                       ),
@@ -190,7 +218,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       children: [
                         Expanded(
                           child: FilledButton.tonalIcon(
-                            onPressed: () => _updateStatus('hold'),
+                            onPressed: () => _confirmAndUpdate('hold'),
                             icon: const Icon(Icons.pause),
                             label: const Text('تعليق'),
                           ),
@@ -198,7 +226,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => _updateStatus('rejected'),
+                            onPressed: () => _confirmAndUpdate('rejected'),
                             icon: const Icon(Icons.close),
                             label: const Text('رفض'),
                             style: OutlinedButton.styleFrom(

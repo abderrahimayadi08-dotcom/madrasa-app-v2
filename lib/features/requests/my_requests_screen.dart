@@ -64,7 +64,22 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
               stream: _firestoreService.getRequestsByUser(widget.user.id),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return const Center(child: Text('حدث خطأ'));
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 48, color: Colors.grey[400]),
+                        const SizedBox(height: 12),
+                        const Text('حدث خطأ في تحميل الطلبات'),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: () => setState(() {}),
+                          child: const Text('إعادة المحاولة'),
+                        ),
+                      ],
+                    ),
+                  );
                 }
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -75,15 +90,52 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   return d['status'] == _filter;
                 }).toList();
                 if (requests.isEmpty) {
-                  return const Center(child: Text('لا توجد طلبات بعد'));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.inbox_outlined,
+                              size: 72, color: Colors.grey[300]),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'لا توجد طلبات بعد',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'اضغط على الزر (+) في الأسفل\nلإرسال طلب شراء أو صيانة',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[600]),
+                          ),
+                          const SizedBox(height: 24),
+                          FilledButton.icon(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const CreateRequestScreen()),
+                            ),
+                            icon: const Icon(Icons.add),
+                            label: const Text('طلب جديد'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
-                return ListView.builder(
-                  itemCount: requests.length,
-                  padding: const EdgeInsets.only(bottom: 16),
-                  itemBuilder: (_, i) {
-                    final r = requests[i];
-                    return _requestCard(r);
-                  },
+                return RefreshIndicator(
+                  onRefresh: () async {},
+                  child: ListView.builder(
+                    itemCount: requests.length,
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemBuilder: (_, i) {
+                      final r = requests[i];
+                      return _requestCard(r);
+                    },
+                  ),
                 );
               },
             ),
@@ -108,89 +160,77 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: priColor,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Container(height: 3, color: priColor),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          r['category'] == 'purchase'
-                              ? Icons.shopping_cart
-                              : Icons.build,
-                          size: 18,
-                          color: Colors.grey[600],
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            r['itemName'] as String,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: statColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            AppTheme.statusLabel(status),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: statColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      r['category'] == 'purchase'
+                          ? Icons.shopping_cart
+                          : Icons.build,
+                      size: 18,
+                      color: Colors.grey[600],
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Icon(Icons.flag_outlined,
-                            size: 14, color: priColor),
-                        const SizedBox(width: 4),
-                        Text(AppTheme.priorityLabel(priority),
-                            style: TextStyle(
-                                fontSize: 13, color: priColor)),
-                        const SizedBox(width: 12),
-                        Icon(Icons.calendar_today,
-                            size: 12, color: Colors.grey[500]),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat.yMd().format(
-                              DateTime.parse(r['createdAt'])),
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey[500]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        r['itemName'] as String,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        AppTheme.statusLabel(status),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: statColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(Icons.flag_outlined,
+                        size: 14, color: priColor),
+                    const SizedBox(width: 4),
+                    Text(AppTheme.priorityLabel(priority),
+                        style: TextStyle(
+                            fontSize: 13, color: priColor)),
+                    const SizedBox(width: 12),
+                    Icon(Icons.calendar_today,
+                        size: 12, color: Colors.grey[500]),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat.yMd().format(
+                          DateTime.parse(r['createdAt'])),
+                      style: TextStyle(
+                          fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

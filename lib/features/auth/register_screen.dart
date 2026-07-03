@@ -17,8 +17,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
-  String _selectedRole = 'member';
   bool _loading = false;
+  bool _obscurePassword = true;
 
   void _register() async {
     if (_nameController.text.trim().isEmpty ||
@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
-        _selectedRole,
+        'member',
       );
       if (!mounted) return;
       if (user != null) {
@@ -71,11 +71,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final roles = [
-      ('member', 'عضو'),
-      ('finance_manager', 'مدير مالية'),
-      ('maintenance_manager', 'مدير صيانة'),
-    ];
     return Scaffold(
       appBar: AppBar(title: const Text('إنشاء حساب')),
       body: SingleChildScrollView(
@@ -102,24 +97,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
                 labelText: 'كلمة المرور',
-                prefixIcon: Icon(Icons.lock_outlined),
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
               ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedRole,
-              decoration: const InputDecoration(
-                labelText: 'الدور',
-                prefixIcon: Icon(Icons.badge_outlined),
-              ),
-              items: roles
-                  .map((r) => DropdownMenuItem(
-                      value: r.$1, child: Text(r.$2)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedRole = v!),
             ),
             const SizedBox(height: 32),
             SizedBox(
