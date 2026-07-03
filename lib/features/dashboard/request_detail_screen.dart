@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/services/firestore_service.dart';
+import 'package:madrasa_app/core/theme.dart';
 
 class RequestDetailScreen extends StatefulWidget {
   final Map<String, dynamic> requestData;
@@ -66,6 +68,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final r = widget.requestData;
+    final status = r['status'] as String;
+    final priority = r['priority'] as String;
+    final statColor = AppTheme.statusColor(status);
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: Text(r['itemName'] as String)),
       body: SingleChildScrollView(
@@ -75,41 +82,92 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
           children: [
             Center(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: r['imageUrl'] != null && (r['imageUrl'] as String).isNotEmpty
+                borderRadius: BorderRadius.circular(16),
+                child: r['imageUrl'] != null &&
+                        (r['imageUrl'] as String).isNotEmpty
                     ? Image.network(
                         r['imageUrl'],
                         height: 200,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.image,
-                          size: 100,
-                          color: Colors.grey,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 200,
+                          color: theme.colorScheme.surfaceContainerLow,
+                          child: Icon(Icons.image,
+                              size: 64,
+                              color: theme.colorScheme.onSurfaceVariant),
                         ),
                       )
-                    : const Icon(Icons.image, size: 100, color: Colors.grey),
+                    : Container(
+                        height: 200,
+                        color: theme.colorScheme.surfaceContainerLow,
+                        child: Icon(Icons.image,
+                            size: 64,
+                            color: theme.colorScheme.onSurfaceVariant),
+                      ),
               ),
             ),
             const SizedBox(height: 24),
-            _infoRow('مقدم الطلب', r['userName']),
-            _infoRow('النوع', r['category'] == 'purchase' ? 'شراء' : 'صيانة'),
-            _infoRow('الغرض', r['itemName']),
-            if (r['estimatedPrice'] != null && (r['estimatedPrice'] as num) > 0)
-              _infoRow('السعر التقديري',
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    AppTheme.statusLabel(status),
+                    style: TextStyle(
+                      color: statColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.priorityColor(priority)
+                        .withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    AppTheme.priorityLabel(priority),
+                    style: TextStyle(
+                      color: AppTheme.priorityColor(priority),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _infoRow(Icons.person_outline, 'مقدم الطلب', r['userName']),
+            _infoRow(
+                Icons.category_outlined, 'النوع',
+                r['category'] == 'purchase' ? 'شراء' : 'صيانة'),
+            _infoRow(Icons.inventory, 'الغرض', r['itemName']),
+            if (r['estimatedPrice'] != null &&
+                (r['estimatedPrice'] as num) > 0)
+              _infoRow(Icons.attach_money, 'السعر التقديري',
                   '${(r['estimatedPrice'] as num).toStringAsFixed(0)} د.ل'),
             if (r['location'] != null && (r['location'] as String).isNotEmpty)
-              _infoRow('الموقع', r['location']),
-            _infoRow('الأهمية', r['priorityLabel']),
-            _infoRow('الحالة', r['statusLabel']),
+              _infoRow(Icons.location_on, 'الموقع', r['location']),
             if (r['comment'] != null && (r['comment'] as String).isNotEmpty)
-              _infoRow('ملاحظات', r['comment']),
-            if (r['status'] == 'pending') ...[
+              _infoRow(Icons.comment, 'ملاحظات', r['comment']),
+            if (r['createdAt'] != null)
+              _infoRow(Icons.calendar_today, 'التاريخ',
+                  _formatDate(r['createdAt'])),
+            if (status == 'pending') ...[
               const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
               TextField(
                 controller: _commentController,
                 decoration: const InputDecoration(
                   labelText: 'ملاحظات (اختياري)',
-                  border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -117,33 +175,38 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
               if (_loading)
                 const Center(child: CircularProgressIndicator())
               else
-                Row(
+                Column(
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: double.infinity,
                       child: FilledButton.icon(
                         onPressed: () => _updateStatus('approved'),
                         icon: const Icon(Icons.check),
                         label: const Text('موافقة'),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton.tonalIcon(
-                        onPressed: () => _updateStatus('hold'),
-                        icon: const Icon(Icons.pause),
-                        label: const Text('تعليق'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _updateStatus('rejected'),
-                        icon: const Icon(Icons.close),
-                        label: const Text('رفض'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.tonalIcon(
+                            onPressed: () => _updateStatus('hold'),
+                            icon: const Icon(Icons.pause),
+                            label: const Text('تعليق'),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _updateStatus('rejected'),
+                            icon: const Icon(Icons.close),
+                            label: const Text('رفض'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -154,18 +217,30 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  String _formatDate(dynamic date) {
+    if (date is String) {
+      return date.substring(0, 10);
+    }
+    if (date is Timestamp) {
+      return date.toDate().toString().substring(0, 10);
+    }
+    return '$date';
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 100,
+            width: 80,
             child: Text(
               '$label:',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Colors.grey,
               ),
             ),

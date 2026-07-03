@@ -56,10 +56,13 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
         itemName: _nameController.text.trim(),
         imageUrl: _selectedImage?.path ?? '',
         estimatedPrice: price ?? 0,
-        location: _category == 'maintenance' ? _locationController.text.trim() : null,
+        location: _category == 'maintenance'
+            ? _locationController.text.trim()
+            : null,
         priority: _priority,
         status: 'pending',
-        assignedRole: _category == 'purchase' ? 'finance_manager' : 'maintenance_manager',
+        assignedRole:
+            _category == 'purchase' ? 'finance_manager' : 'maintenance_manager',
         createdAt: DateTime.now(),
       );
       await _firestoreService.createRequest(request);
@@ -91,15 +94,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      ('purchase', 'شراء', Icons.shopping_cart),
-      ('maintenance', 'صيانة', Icons.build),
-    ];
-    final priorities = [
-      ('urgent', 'عاجل', Colors.red),
-      ('medium', 'متوسط', Colors.orange),
-      ('low', 'منخفض', Colors.green),
-    ];
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('طلب جديد')),
       body: Padding(
@@ -108,37 +103,33 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('نوع الطلب', style: TextStyle(fontSize: 16)),
+              Text('نوع الطلب',
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              Row(
-                children: categories.map((c) {
-                  final selected = _category == c.$1;
-                  return Expanded(
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        end: c.$1 == 'purchase' ? 8 : 0,
-                      ),
-                      child: FilterChip(
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(c.$3, size: 18),
-                            const SizedBox(width: 4),
-                            Text(c.$2),
-                          ],
-                        ),
-                        selected: selected,
-                        onSelected: (_) => setState(() => _category = c.$1),
-                      ),
-                    ),
-                  );
-                }).toList(),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(
+                    value: 'purchase',
+                    label: Text('شراء'),
+                    icon: Icon(Icons.shopping_cart),
+                  ),
+                  ButtonSegment(
+                    value: 'maintenance',
+                    label: Text('صيانة'),
+                    icon: Icon(Icons.build),
+                  ),
+                ],
+                selected: {_category},
+                onSelectionChanged: (v) =>
+                    setState(() => _category = v.first),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: _category == 'purchase' ? 'اسم الغرض' : 'وصف العطل',
+                  labelText:
+                      _category == 'purchase' ? 'اسم الغرض' : 'وصف العطل',
                   prefixIcon: const Icon(Icons.inventory),
                 ),
               ),
@@ -163,55 +154,71 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              Text('درجة الأهمية',
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(
+                    value: 'urgent',
+                    label: Text('عاجل'),
+                    icon: Icon(Icons.error_outline),
+                  ),
+                  ButtonSegment(
+                    value: 'medium',
+                    label: Text('متوسط'),
+                    icon: Icon(Icons.remove_circle_outline),
+                  ),
+                  ButtonSegment(
+                    value: 'low',
+                    label: Text('منخفض'),
+                    icon: Icon(Icons.check_circle_outline),
+                  ),
+                ],
+                selected: {_priority},
+                onSelectionChanged: (v) =>
+                    setState(() => _priority = v.first),
+              ),
+              const SizedBox(height: 20),
               InkWell(
                 onTap: _pickImage,
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  height: 120,
+                  height: 140,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(12),
+                    color: theme.colorScheme.surfaceContainerLow,
                   ),
                   child: _selectedImage != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                           child: Image.file(
                             File(_selectedImage!.path),
                             fit: BoxFit.cover,
                             width: double.infinity,
                           ),
                         )
-                      : const Center(
+                      : Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.add_photo_alternate, size: 40),
-                              Text('إضافة صورة'),
+                              Icon(Icons.add_photo_alternate,
+                                  size: 40,
+                                  color: theme.colorScheme.onSurfaceVariant),
+                              const SizedBox(height: 8),
+                              Text(
+                                'إضافة صورة',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text('درجة الأهمية', style: TextStyle(fontSize: 16)),
-              const SizedBox(height: 8),
-              Row(
-                children: priorities.map((p) {
-                  final selected = _priority == p.$1;
-                  return Expanded(
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        end: p.$1 != 'low' ? 8 : 0,
-                      ),
-                      child: FilterChip(
-                        label: Text(p.$2),
-                        selected: selected,
-                        selectedColor: p.$3.withValues(alpha: 0.3),
-                        onSelected: (_) => setState(() => _priority = p.$1),
-                      ),
-                    ),
-                  );
-                }).toList(),
               ),
               const SizedBox(height: 24),
               SizedBox(

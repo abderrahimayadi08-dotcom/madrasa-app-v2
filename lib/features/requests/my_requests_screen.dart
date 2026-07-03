@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/models/user_model.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
 import 'package:madrasa_app/core/services/firestore_service.dart';
+import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/features/auth/login_screen.dart';
 import 'package:madrasa_app/features/requests/create_request_screen.dart';
 import 'package:intl/intl.dart';
@@ -19,49 +20,6 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   final _firestoreService = FirestoreService();
   final _authService = AuthService();
   String _filter = 'all';
-
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      case 'hold':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _statusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return 'قيد المراجعة';
-      case 'approved':
-        return 'موافق عليه';
-      case 'rejected':
-        return 'مرفوض';
-      case 'hold':
-        return 'معلق';
-      default:
-        return status;
-    }
-  }
-
-  String _priorityLabel(String priority) {
-    switch (priority) {
-      case 'urgent':
-        return 'عاجل';
-      case 'medium':
-        return 'متوسط';
-      case 'low':
-        return 'منخفض';
-      default:
-        return priority;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,17 +43,20 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                _filterChip('all', 'الكل'),
-                const SizedBox(width: 8),
-                _filterChip('pending', 'قيد المراجعة'),
-                const SizedBox(width: 8),
-                _filterChip('approved', 'موافق'),
-                const SizedBox(width: 8),
-                _filterChip('rejected', 'مرفوض'),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _filterChip('all', 'الكل'),
+                  const SizedBox(width: 6),
+                  _filterChip('pending', 'قيد المراجعة'),
+                  const SizedBox(width: 6),
+                  _filterChip('approved', 'موافق'),
+                  const SizedBox(width: 6),
+                  _filterChip('rejected', 'مرفوض'),
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -114,43 +75,14 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   return d['status'] == _filter;
                 }).toList();
                 if (requests.isEmpty) {
-                  return const Center(
-                    child: Text('لا توجد طلبات بعد'),
-                  );
+                  return const Center(child: Text('لا توجد طلبات بعد'));
                 }
                 return ListView.builder(
                   itemCount: requests.length,
+                  padding: const EdgeInsets.only(bottom: 16),
                   itemBuilder: (_, i) {
                     final r = requests[i];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              _statusColor(r['status']).withValues(alpha: 0.2),
-                          child: Icon(
-                            r['category'] == 'purchase'
-                                ? Icons.shopping_cart
-                                : Icons.build,
-                            color: _statusColor(r['status']),
-                          ),
-                        ),
-                        title: Text(r['itemName'] as String),
-                        subtitle: Text(
-                          '${_statusLabel(r['status'])} | ${_priorityLabel(r['priority'])}'
-                          ' | ${DateFormat.yMd().format(DateTime.parse(r['createdAt']))}',
-                        ),
-                        trailing: Chip(
-                          label: Text(
-                            _statusLabel(r['status']),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          backgroundColor:
-                              _statusColor(r['status']).withValues(alpha: 0.2),
-                        ),
-                      ),
-                    );
+                    return _requestCard(r);
                   },
                 );
               },
@@ -164,6 +96,101 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
           MaterialPageRoute(builder: (_) => const CreateRequestScreen()),
         ),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _requestCard(QueryDocumentSnapshot r) {
+    final status = r['status'] as String;
+    final priority = r['priority'] as String;
+    final priColor = AppTheme.priorityColor(priority);
+    final statColor = AppTheme.statusColor(status);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: priColor,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          r['category'] == 'purchase'
+                              ? Icons.shopping_cart
+                              : Icons.build,
+                          size: 18,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            r['itemName'] as String,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            AppTheme.statusLabel(status),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: statColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(Icons.flag_outlined,
+                            size: 14, color: priColor),
+                        const SizedBox(width: 4),
+                        Text(AppTheme.priorityLabel(priority),
+                            style: TextStyle(
+                                fontSize: 13, color: priColor)),
+                        const SizedBox(width: 12),
+                        Icon(Icons.calendar_today,
+                            size: 12, color: Colors.grey[500]),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat.yMd().format(
+                              DateTime.parse(r['createdAt'])),
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

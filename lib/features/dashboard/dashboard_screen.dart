@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/models/user_model.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
 import 'package:madrasa_app/core/services/firestore_service.dart';
+import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/features/auth/login_screen.dart';
 import 'package:madrasa_app/features/dashboard/request_detail_screen.dart';
 import 'package:intl/intl.dart';
@@ -25,21 +26,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String get _title =>
       widget.user.isFinanceManager ? 'طلبات الشراء' : 'طلبات الصيانة';
-
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      case 'hold':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
-  }
 
   int _priorityValue(String p) {
     switch (p) {
@@ -76,19 +62,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                _filterChip('all', 'الكل'),
-                const SizedBox(width: 8),
-                _filterChip('pending', 'قيد المراجعة'),
-                const SizedBox(width: 8),
-                _filterChip('approved', 'موافق'),
-                const SizedBox(width: 8),
-                _filterChip('rejected', 'مرفوض'),
-                const SizedBox(width: 8),
-                _filterChip('hold', 'معلق'),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _filterChip('all', 'الكل'),
+                  const SizedBox(width: 6),
+                  _filterChip('pending', 'قيد المراجعة'),
+                  const SizedBox(width: 6),
+                  _filterChip('approved', 'موافق'),
+                  const SizedBox(width: 6),
+                  _filterChip('rejected', 'مرفوض'),
+                  const SizedBox(width: 6),
+                  _filterChip('hold', 'معلق'),
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -109,54 +98,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   docs = docs.where((d) => d['status'] == _filter).toList();
                 }
                 if (docs.isEmpty) {
-                  return const Center(
-                    child: Text('لا توجد طلبات'),
-                  );
+                  return const Center(child: Text('لا توجد طلبات'));
                 }
                 return ListView.builder(
                   itemCount: docs.length,
+                  padding: const EdgeInsets.only(bottom: 16),
                   itemBuilder: (_, i) {
                     final r = docs[i];
-                    final statusLabel = _statusLabel(r['status']);
-                    final priorityLabel = _priorityLabel(r['priority']);
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              _statusColor(r['status']).withValues(alpha: 0.2),
-                          child: Icon(
-                            Icons.circle,
-                            color: _priorityColor(r['priority']),
-                            size: 16,
-                          ),
-                        ),
-                        title: Text(r['itemName'] as String),
-                        subtitle: Text(
-                          '${r['userName']} | $priorityLabel'
-                          ' | ${_priceText(r)}'
-                          ' | ${DateFormat.yMd().format(DateTime.parse(r['createdAt']))}',
-                        ),
-                        trailing: Chip(
-                          label: Text(
-                            statusLabel,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          backgroundColor:
-                              _statusColor(r['status']).withValues(alpha: 0.2),
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => RequestDetailScreen(
-                              requestData: r.data() as Map<String, dynamic>,
-                              requestId: r.id,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                    return _requestCard(r);
                   },
                 );
               },
@@ -167,51 +116,140 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  String _priorityLabel(String priority) {
-    switch (priority) {
-      case 'urgent':
-        return 'عاجل';
-      case 'medium':
-        return 'متوسط';
-      case 'low':
-        return 'منخفض';
-      default:
-        return priority;
-    }
-  }
-
-  String _statusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return 'قيد المراجعة';
-      case 'approved':
-        return 'موافق عليه';
-      case 'rejected':
-        return 'مرفوض';
-      case 'hold':
-        return 'معلق';
-      default:
-        return status;
-    }
-  }
-
-  Color _priorityColor(String p) {
-    switch (p) {
-      case 'urgent':
-        return Colors.red;
-      case 'medium':
-        return Colors.orange;
-      case 'low':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _priceText(QueryDocumentSnapshot r) {
+  Widget _requestCard(QueryDocumentSnapshot r) {
+    final status = r['status'] as String;
+    final priority = r['priority'] as String;
+    final priColor = AppTheme.priorityColor(priority);
+    final statColor = AppTheme.statusColor(status);
     final price = r['estimatedPrice'];
-    if (price == null || price == 0) return '';
-    return '${price.toStringAsFixed(0)} د.ل';
+    final priceText =
+        price != null && price != 0 ? '${price.toStringAsFixed(0)} د.ل' : null;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RequestDetailScreen(
+              requestData: r.data() as Map<String, dynamic>,
+              requestId: r.id,
+            ),
+          ),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: priColor,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              r['itemName'] as String,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: statColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              AppTheme.statusLabel(status),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: statColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.person_outline,
+                              size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(r['userName'] as String,
+                              style: TextStyle(
+                                  fontSize: 13, color: Colors.grey[600])),
+                          const SizedBox(width: 12),
+                          Icon(Icons.flag_outlined,
+                              size: 14, color: priColor),
+                          const SizedBox(width: 4),
+                          Text(AppTheme.priorityLabel(priority),
+                              style: TextStyle(
+                                  fontSize: 13, color: priColor)),
+                          if (priceText != null) ...[
+                            const SizedBox(width: 12),
+                            Icon(Icons.attach_money,
+                                size: 14, color: Colors.grey[600]),
+                            const SizedBox(width: 4),
+                            Text(priceText,
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600])),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today,
+                              size: 12, color: Colors.grey[500]),
+                          const SizedBox(width: 4),
+                          Text(
+                            DateFormat.yMd().format(
+                                DateTime.parse(r['createdAt'])),
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey[500]),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            r['category'] == 'purchase'
+                                ? Icons.shopping_cart
+                                : Icons.build,
+                            size: 12,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            r['category'] == 'purchase' ? 'شراء' : 'صيانة',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey[500]),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _filterChip(String value, String label) {

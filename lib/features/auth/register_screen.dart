@@ -78,16 +78,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('إنشاء حساب')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 24),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'الاسم',
-                prefixIcon: Icon(Icons.person),
+                prefixIcon: Icon(Icons.person_outlined),
               ),
             ),
             const SizedBox(height: 16),
@@ -95,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'البريد الإلكتروني',
-                prefixIcon: Icon(Icons.email),
+                prefixIcon: Icon(Icons.email_outlined),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -104,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: 'كلمة المرور',
-                prefixIcon: Icon(Icons.lock),
+                prefixIcon: Icon(Icons.lock_outlined),
               ),
               obscureText: true,
             ),
@@ -113,7 +113,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               value: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'الدور',
-                prefixIcon: Icon(Icons.badge),
+                prefixIcon: Icon(Icons.badge_outlined),
               ),
               items: roles
                   .map((r) => DropdownMenuItem(
@@ -121,7 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   .toList(),
               onChanged: (v) => setState(() => _selectedRole = v!),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
