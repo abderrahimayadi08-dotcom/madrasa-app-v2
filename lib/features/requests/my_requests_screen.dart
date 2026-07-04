@@ -218,8 +218,19 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     itemCount: requests.length,
                     padding: const EdgeInsets.only(bottom: 80),
                     itemBuilder: (_, i) {
-                      final r = requests[i];
-                      return _requestCard(r);
+                      try {
+                        final r = requests[i];
+                        return _requestCard(r);
+                      } catch (e) {
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text('الوثيقة $i بها خطأ: $e',
+                                style: const TextStyle(color: Colors.red)),
+                          ),
+                        );
+                      }
                     },
                   ),
                 );
@@ -239,11 +250,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   }
 
   Widget _requestCard(QueryDocumentSnapshot r) {
-    final status = r['status'] as String;
-    final priority = r['priority'] as String;
+    final d = r.data()!;
+    final status = d['status'] as String;
+    final priority = d['priority'] as String;
     final priColor = AppTheme.priorityColor(priority);
     final statColor = AppTheme.statusColor(status);
-    final notes = r['notes'] as String?;
+    final notes = d['notes'] as String?;
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -270,7 +282,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        r['itemName'] as String,
+                        d['itemName'] as String,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -301,15 +313,15 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     _metaChip(Icons.flag_outlined, AppTheme.priorityLabel(priority), priColor),
                     const SizedBox(width: 8),
                     _metaChip(
-                      r['category'] == 'purchase' ? Icons.shopping_cart : Icons.build,
-                      r['category'] == 'purchase' ? 'شراء' : 'صيانة',
+                      d['category'] == 'purchase' ? Icons.shopping_cart : Icons.build,
+                      d['category'] == 'purchase' ? 'شراء' : 'صيانة',
                       scheme.onSurfaceVariant,
                     ),
-                    if ((r['quantity'] as num?)?.toInt() != null &&
-                        (r['quantity'] as num).toInt() > 1) ...[
+                    if ((d['quantity'] as num?)?.toInt() != null &&
+                        (d['quantity'] as num).toInt() > 1) ...[
                       const SizedBox(width: 8),
                       _metaChip(Icons.numbers,
-                          'x${(r['quantity'] as num).toInt()}',
+                          'x${(d['quantity'] as num).toInt()}',
                           scheme.onSurfaceVariant),
                     ],
                   ],
@@ -322,7 +334,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     const SizedBox(width: 4),
                     Text(
                       DateFormat.yMd().format(
-                          _parseDate(r['createdAt'])),
+                          _parseDate(d['createdAt'])),
                       style: TextStyle(
                           fontSize: 12, color: scheme.onSurfaceVariant),
                     ),
