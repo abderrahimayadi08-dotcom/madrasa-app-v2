@@ -46,12 +46,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _isGeneral ? 'كل الطلبات'
       : widget.user.isFinanceManager ? 'طلبات الشراء' : 'طلبات الصيانة';
 
-  DateTime _parseDate(dynamic d) {
-    if (d is String) return DateTime.parse(d);
-    if (d is Timestamp) return d.toDate();
-    return DateTime.now();
-  }
-
   int _priorityValue(String p) {
     switch (p) {
       case 'urgent':
@@ -221,10 +215,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   );
                 }
-                return Center(
-                  child: Text(
-                    'عرض ${docs.length} طلب',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: scheme.primary),
+                return RefreshIndicator(
+                  onRefresh: () async {},
+                  child: ListView.builder(
+                    itemCount: docs.length,
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemBuilder: (_, i) {
+                      final r = docs[i];
+                      return _requestCard(r);
+                    },
                   ),
                 );
                 return RefreshIndicator(
@@ -254,7 +253,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final price = r['estimatedPrice'];
     final priceText =
         price != null && price != 0 ? '${price.toStringAsFixed(0)} د.ل' : null;
-    final notes = r['notes'] as String?;
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -354,7 +352,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 4),
                       Text(
                         DateFormat.yMd().format(
-                            _parseDate(r['createdAt'])),
+                            DateTime.parse(r['createdAt'])),
                         style: TextStyle(
                             fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
@@ -368,26 +366,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ],
                   ),
-                  if (notes != null && notes.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.notes_outlined,
-                            size: 13, color: scheme.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            notes,
-                            style: TextStyle(
-                                fontSize: 12, color: scheme.onSurfaceVariant),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),
