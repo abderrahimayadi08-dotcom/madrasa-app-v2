@@ -71,6 +71,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         auth.EmailAuthProvider.credential(email: user.email!, password: password),
       );
       if (!mounted) return;
+      await _firestore.collection('users').doc(user.uid).set({
+        'role': 'admin',
+      }, SetOptions(merge: true));
       final snapshot = await _firestore.collection('users').get();
       _users = snapshot.docs.map((d) => d.data()).toList();
       setState(() => _adminMode = true);
@@ -97,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (e) {
       Logger.error('Role update error: $e');
-      _showError('فشل تحديث المهمة');
+      _showError('فشل تحديث المهمة: $e');
     }
   }
 
