@@ -194,22 +194,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                var docs = snapshot.data!.docs.toList();
-                try {
-                  docs.sort((a, b) {
-                    final pa = a['priority'];
-                    final pb = b['priority'];
-                    final va = pa is String ? _priorityValue(pa) : 3;
-                    final vb = pb is String ? _priorityValue(pb) : 3;
-                    final p = va.compareTo(vb);
-                    if (p != 0) return p;
-                    final ca = a['createdAt'];
-                    final cb = b['createdAt'];
-                    final sa = ca is String ? ca : '${ca}';
-                    final sb = cb is String ? cb : '${cb}';
-                    return sb.compareTo(sa);
-                  });
-                } catch (_) {}
+                final all = snapshot.data!.docs;
+                var docs = all.toList();
                 if (_filter != 'all') {
                   docs = docs.where((d) => d['status'] == _filter).toList();
                 }
@@ -228,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'عدد المستندات المستلمة: ${snapshot.data!.docs.length}',
+                          'الكل: ${all.length} | بعد التصفية: ${docs.length}',
                           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                         ),
                       ],
