@@ -221,19 +221,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     itemCount: docs.length,
                     padding: const EdgeInsets.only(bottom: 16),
                     itemBuilder: (_, i) {
-                      final r = docs[i];
-                      return _requestCard(r);
-                    },
-                  ),
-                );
-                return RefreshIndicator(
-                  onRefresh: () async {},
-                  child: ListView.builder(
-                    itemCount: docs.length,
-                    padding: const EdgeInsets.only(bottom: 16),
-                    itemBuilder: (_, i) {
-                      final r = docs[i];
-                      return _requestCard(r);
+                      try {
+                        final r = docs[i];
+                        return _requestCard(r);
+                      } catch (e) {
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text('الوثيقة $i بها خطأ: $e',
+                                style: const TextStyle(color: Colors.red)),
+                          ),
+                        );
+                      }
                     },
                   ),
                 );
