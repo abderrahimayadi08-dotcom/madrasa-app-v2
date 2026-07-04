@@ -213,8 +213,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'عندما يرسل الأعضاء طلبات جديدة، ستظهر هنا',
-                          style: TextStyle(color: scheme.onSurfaceVariant),
+                          'عدد المستندات المستلمة: ${snapshot.data!.docs.length}',
+                          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
