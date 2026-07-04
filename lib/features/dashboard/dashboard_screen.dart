@@ -191,7 +191,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 final all = snapshot.data!.docs;
                 var docs = all.toList();
                 if (_filter != 'all') {
-                  docs = docs.where((d) => d['status'] == _filter).toList();
+                  docs = docs.where((d) {
+                    final m = d.data() as Map<String, dynamic>;
+                    return m['status'] == _filter;
+                  }).toList();
                 }
                 if (docs.isEmpty) {
                   return Center(
