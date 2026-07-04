@@ -196,7 +196,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       Logger.error('Submit error: $e');
-      _showError('فشل إرسال الطلب');
+      _showError('فشل إرسال الطلب: ${e.toString().length > 80 ? e.toString().substring(0, 80) : e.toString()}');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
