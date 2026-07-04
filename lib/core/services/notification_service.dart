@@ -99,6 +99,8 @@ class NotificationService {
           'طلبات جديدة',
           importance: Importance.high,
           priority: Priority.high,
+          ongoing: true,
+          autoCancel: false,
         ),
       ),
     );
