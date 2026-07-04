@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/models/user_model.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
 import 'package:madrasa_app/core/services/logger.dart';
+import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/features/auth/register_screen.dart';
 import 'package:madrasa_app/features/dashboard/dashboard_screen.dart';
 import 'package:madrasa_app/features/requests/my_requests_screen.dart';
@@ -82,35 +83,41 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const SizedBox(height: 40),
-              Icon(
-                Icons.mosque,
-                size: 72,
-                color: theme.colorScheme.primary,
+              const SizedBox(height: 48),
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(Icons.mosque, size: 48, color: scheme.primary),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
                 'المدرسة القرآنية',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: scheme.primary,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
                 'نظام إدارة الطلبات',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 20),
+              const DecorativeDivider(),
+              const SizedBox(height: 40),
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -140,24 +147,38 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
+                height: 52,
                 child: FilledButton(
                   onPressed: _loading ? null : _login,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
+                  ),
                   child: _loading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text('دخول'),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const RegisterScreen()),
                 ),
-                child: const Text('إنشاء حساب جديد'),
+                child: Text(
+                  'إنشاء حساب جديد',
+                  style: TextStyle(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),
