@@ -222,6 +222,17 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
+                    if ((r['quantity'] as num?)?.toInt() != null &&
+                        (r['quantity'] as num).toInt() > 1) ...[
+                      Icon(Icons.numbers,
+                          size: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Text('x${(r['quantity'] as num).toInt()}',
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600])),
+                      const SizedBox(width: 12),
+                    ],
                     Icon(Icons.flag_outlined,
                         size: 14, color: priColor),
                     const SizedBox(width: 4),

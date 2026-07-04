@@ -177,12 +177,52 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 Icons.category_outlined, 'النوع',
                 r['category'] == 'purchase' ? 'شراء' : 'صيانة'),
             _infoRow(Icons.inventory, 'الغرض', r['itemName']),
+            if ((r['quantity'] as num?)?.toInt() != null &&
+                (r['quantity'] as num?)!.toInt() > 1)
+              _infoRow(Icons.numbers, 'الكمية',
+                  '${(r['quantity'] as num).toInt()}'),
             if (r['estimatedPrice'] != null &&
                 (r['estimatedPrice'] as num) > 0)
               _infoRow(Icons.attach_money, 'السعر التقديري',
                   '${(r['estimatedPrice'] as num).toStringAsFixed(0)} د.ل'),
             if (r['location'] != null && (r['location'] as String).isNotEmpty)
               _infoRow(Icons.location_on, 'الموقع', r['location']),
+            if (r['maintenanceItems'] != null &&
+                (r['maintenanceItems'] as List).isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.checklist, size: 20, color: Colors.grey[600]),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        'المتطلبات:',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: (r['maintenanceItems'] as List)
+                            .asMap()
+                            .entries
+                            .map((e) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text('${e.key + 1}. ${e.value}'),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (r['comment'] != null && (r['comment'] as String).isNotEmpty)
               _infoRow(Icons.comment, 'ملاحظات', r['comment']),
             if (r['createdAt'] != null)

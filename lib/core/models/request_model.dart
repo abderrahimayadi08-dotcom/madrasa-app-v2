@@ -6,7 +6,9 @@ class RequestModel {
   final String itemName;
   final String imageUrl;
   final double estimatedPrice;
+  final int quantity;
   final String? location;
+  final List<String> maintenanceItems;
   final String priority;
   final String status;
   final String assignedRole;
@@ -22,7 +24,9 @@ class RequestModel {
     required this.itemName,
     required this.imageUrl,
     required this.estimatedPrice,
+    this.quantity = 1,
     this.location,
+    this.maintenanceItems = const [],
     required this.priority,
     required this.status,
     required this.assignedRole,
@@ -39,7 +43,9 @@ class RequestModel {
         'itemName': itemName,
         'imageUrl': imageUrl,
         'estimatedPrice': estimatedPrice,
+        'quantity': quantity,
         'location': location,
+        'maintenanceItems': maintenanceItems,
         'priority': priority,
         'status': status,
         'assignedRole': assignedRole,
@@ -56,7 +62,11 @@ class RequestModel {
         itemName: map['itemName'] as String,
         imageUrl: map['imageUrl'] as String,
         estimatedPrice: (map['estimatedPrice'] as num).toDouble(),
+        quantity: (map['quantity'] as num?)?.toInt() ?? 1,
         location: map['location'] as String?,
+        maintenanceItems: map['maintenanceItems'] != null
+            ? List<String>.from(map['maintenanceItems'] as List)
+            : [],
         priority: map['priority'] as String,
         status: map['status'] as String,
         assignedRole: map['assignedRole'] as String,

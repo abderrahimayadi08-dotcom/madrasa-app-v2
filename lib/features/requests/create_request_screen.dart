@@ -16,6 +16,7 @@ class CreateRequestScreen extends StatefulWidget {
 class _CreateRequestScreenState extends State<CreateRequestScreen> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
+  final _quantityController = TextEditingController(text: '1');
   final _locationController = TextEditingController();
   final _firestoreService = FirestoreService();
   final _authService = AuthService();
@@ -25,16 +26,43 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   String _priority = 'medium';
   XFile? _selectedImage;
   bool _loading = false;
+  final List<TextEditingController> _maintenanceControllers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _maintenanceControllers.add(TextEditingController());
+  }
 
   Future<void> _pickImage() async {
     final file = await _picker.pickImage(source: ImageSource.gallery);
     if (file != null) setState(() => _selectedImage = file);
   }
 
+  void _addMaintenanceItem() {
+    setState(() => _maintenanceControllers.add(TextEditingController()));
+  }
+
+  void _removeMaintenanceItem(int i) {
+    if (_maintenanceControllers.length <= 1) return;
+    _maintenanceControllers[i].dispose();
+    setState(() => _maintenanceControllers.removeAt(i));
+  }
+
   void _submit() async {
     if (_nameController.text.trim().isEmpty) {
       _showError('يرجى إدخال اسم الغرض');
       return;
+    }
+    if (_category == 'maintenance') {
+      final items = _maintenanceControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+      if (items.isEmpty) {
+        _showError('يرجى إضافة متطلب صيانة واحد على الأقل');
+        return;
+      }
     }
     final user = await _authService.getCurrentUser();
     if (user == null) {
@@ -46,8 +74,17 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
       _showError('يرجى إدخال سعر تقديري صحيح');
       return;
     }
+    final qty = int.tryParse(_quantityController.text) ?? 1;
+    if (qty < 1) {
+      _showError('الكمية يجب أن تكون 1 على الأقل');
+      return;
+    }
     setState(() => _loading = true);
     try {
+      final maintenanceItems = _maintenanceControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
       final request = RequestModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: user.id,
@@ -56,9 +93,11 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
         itemName: _nameController.text.trim(),
         imageUrl: _selectedImage?.path ?? '',
         estimatedPrice: price ?? 0,
-        location: _category == 'maintenance'
-            ? _locationController.text.trim()
-            : null,
+        quantity: qty,
+        location:
+            _category == 'maintenance' ? _locationController.text.trim() : null,
+        maintenanceItems:
+            _category == 'maintenance' ? maintenanceItems : [],
         priority: _priority,
         status: 'pending',
         assignedRole:
@@ -88,7 +127,11 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
+    _quantityController.dispose();
     _locationController.dispose();
+    for (final c in _maintenanceControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -136,6 +179,15 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
               if (_category == 'purchase') ...[
                 const SizedBox(height: 16),
                 TextField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(
+                    labelText: 'الكمية',
+                    prefixIcon: Icon(Icons.numbers),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextField(
                   controller: _priceController,
                   decoration: const InputDecoration(
                     labelText: 'السعر التقديري (د.ل)',
@@ -152,6 +204,40 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                     labelText: 'موقع العطل',
                     prefixIcon: Icon(Icons.location_on),
                   ),
+                ),
+                const SizedBox(height: 20),
+                Text('متطلبات الصيانة',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                ...List.generate(_maintenanceControllers.length, (i) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _maintenanceControllers[i],
+                            decoration: InputDecoration(
+                              labelText: 'متطلب ${i + 1}',
+                              prefixIcon: const Icon(Icons.checklist),
+                            ),
+                          ),
+                        ),
+                        if (_maintenanceControllers.length > 1)
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline,
+                                color: Colors.red),
+                            onPressed: () => _removeMaintenanceItem(i),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+                TextButton.icon(
+                  onPressed: _addMaintenanceItem,
+                  icon: const Icon(Icons.add),
+                  label: const Text('إضافة متطلب آخر'),
                 ),
               ],
               const SizedBox(height: 20),
