@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: unnecessary_cast
 import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/models/user_model.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
@@ -44,6 +45,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String get _title =>
       _isGeneral ? 'كل الطلبات'
       : widget.user.isFinanceManager ? 'طلبات الشراء' : 'طلبات الصيانة';
+
+  DateTime _parseDate(dynamic d) {
+    if (d is String) return DateTime.parse(d);
+    if (d is Timestamp) return d.toDate();
+    return DateTime.now();
+  }
 
   int _priorityValue(String p) {
     switch (p) {
@@ -188,13 +195,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 var docs = snapshot.data!.docs.toList();
-                docs.sort((a, b) {
-                  final p = _priorityValue(a['priority'])
-                      .compareTo(_priorityValue(b['priority']));
-                  if (p != 0) return p;
-                  return (b['createdAt'] as String)
-                      .compareTo(a['createdAt'] as String);
-                });
+                try {
+                  docs.sort((a, b) {
+                    final pa = a['priority'];
+                    final pb = b['priority'];
+                    final va = pa is String ? _priorityValue(pa) : 3;
+                    final vb = pb is String ? _priorityValue(pb) : 3;
+                    final p = va.compareTo(vb);
+                    if (p != 0) return p;
+                    final ca = a['createdAt'];
+                    final cb = b['createdAt'];
+                    final sa = ca is String ? ca : '${ca}';
+                    final sb = cb is String ? cb : '${cb}';
+                    return sb.compareTo(sa);
+                  });
+                } catch (_) {}
                 if (_filter != 'all') {
                   docs = docs.where((d) => d['status'] == _filter).toList();
                 }
@@ -347,7 +362,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 4),
                       Text(
                         DateFormat.yMd().format(
-                            DateTime.parse(r['createdAt'])),
+                            _parseDate(r['createdAt'])),
                         style: TextStyle(
                             fontSize: 12, color: scheme.onSurfaceVariant),
                       ),

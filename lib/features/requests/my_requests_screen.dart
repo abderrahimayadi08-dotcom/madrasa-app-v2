@@ -162,8 +162,15 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 var docs = snapshot.data!.docs.toList();
-                docs.sort((a, b) => (b['createdAt'] as String)
-                    .compareTo(a['createdAt'] as String));
+                try {
+                  docs.sort((a, b) {
+                    final ca = a['createdAt'];
+                    final cb = b['createdAt'];
+                    final sa = ca is String ? ca : '${ca}';
+                    final sb = cb is String ? cb : '${cb}';
+                    return sb.compareTo(sa);
+                  });
+                } catch (_) {}
                 final requests = docs.where((d) {
                   if (_filter == 'all') return true;
                   return d['status'] == _filter;
@@ -315,7 +322,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     const SizedBox(width: 4),
                     Text(
                       DateFormat.yMd().format(
-                          DateTime.parse(r['createdAt'])),
+                          _parseDate(r['createdAt'])),
                       style: TextStyle(
                           fontSize: 12, color: scheme.onSurfaceVariant),
                     ),
@@ -347,6 +354,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         ],
       ),
     );
+  }
+
+  DateTime _parseDate(dynamic d) {
+    if (d is String) return DateTime.parse(d);
+    if (d is Timestamp) return d.toDate();
+    return DateTime.now();
   }
 
   Widget _metaChip(IconData icon, String label, Color color) {
