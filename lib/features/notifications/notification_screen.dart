@@ -43,7 +43,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         stream: FirebaseFirestore.instance
             .collection('notifications')
             .where('userId', isEqualTo: _uid)
-            .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -62,7 +61,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final docs = snapshot.data!.docs;
+          var docs = snapshot.data!.docs.toList();
+          docs.sort((a, b) {
+            final aDate = a['createdAt'] as String? ?? '';
+            final bDate = b['createdAt'] as String? ?? '';
+            return bDate.compareTo(aDate);
+          });
           if (docs.isEmpty) {
             return Center(
               child: Column(
