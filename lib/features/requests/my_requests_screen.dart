@@ -4,7 +4,7 @@ import 'package:madrasa_app/core/models/user_model.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
 import 'package:madrasa_app/core/services/firestore_service.dart';
 import 'package:madrasa_app/core/theme.dart';
-import 'package:madrasa_app/features/auth/login_screen.dart';
+import 'package:madrasa_app/features/auth/auth_gate.dart';
 import 'package:madrasa_app/features/requests/create_request_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -32,9 +32,10 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             onPressed: () async {
               await _authService.signOut();
               if (!context.mounted) return;
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const AuthGate()),
+                (route) => false,
               );
             },
           ),

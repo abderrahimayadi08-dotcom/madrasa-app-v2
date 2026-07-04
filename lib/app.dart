@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/theme.dart';
-import 'package:madrasa_app/features/auth/login_screen.dart';
+import 'package:madrasa_app/features/auth/auth_gate.dart';
 
 class MadrasaApp extends StatelessWidget {
   const MadrasaApp({super.key});
@@ -13,7 +13,7 @@ class MadrasaApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.light,
       themeMode: ThemeMode.light,
-      home: const LoginScreen(),
+      home: const AuthGate(),
     );
   }
 }
