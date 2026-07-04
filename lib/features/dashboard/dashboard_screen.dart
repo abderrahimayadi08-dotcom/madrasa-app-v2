@@ -353,7 +353,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 4),
                       Text(
                         DateFormat.yMd().format(
-                            DateTime.parse(d['createdAt'] as String)),
+                            _parseDate(d['createdAt'])),
                         style: TextStyle(
                             fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
@@ -387,6 +387,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
+
+  DateTime _parseDate(dynamic d) {
+    if (d is String) return DateTime.parse(d);
+    if (d is Timestamp) return d.toDate();
+    return DateTime.now();
+  }
+}
 
   Widget _filterChip(String value, String label) {
     final selected = _filter == value;
