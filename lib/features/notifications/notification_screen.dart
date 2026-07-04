@@ -54,6 +54,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       size: 48, color: scheme.onSurfaceVariant),
                   const SizedBox(height: 12),
                   const Text('حدث خطأ في تحميل الإشعارات'),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      '${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 12, color: scheme.onSurfaceVariant),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => setState(() {}),
+                    child: const Text('إعادة المحاولة'),
+                  ),
                 ],
               ),
             );
