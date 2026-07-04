@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
 import 'package:madrasa_app/core/services/logger.dart';
+import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/features/dashboard/dashboard_screen.dart';
 import 'package:madrasa_app/features/requests/my_requests_screen.dart';
 
@@ -71,13 +72,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('إنشاء حساب')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: Column(
           children: [
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.person_add_outlined,
+                  size: 48, color: scheme.primary),
+            ),
+            const SizedBox(height: 16),
+            Text('إنشاء حساب جديد',
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.primary)),
             const SizedBox(height: 24),
+            const DecorativeDivider(),
+            const SizedBox(height: 28),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -117,13 +137,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: double.infinity,
               child: FilledButton(
                 onPressed: _loading ? null : _register,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 52),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
+                ),
                 child: _loading
                     ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('تسجيل'),
+                    : const Text('تسجيل', style: TextStyle(fontSize: 16)),
               ),
             ),
           ],

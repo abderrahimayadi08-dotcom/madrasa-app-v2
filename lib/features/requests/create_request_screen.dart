@@ -5,6 +5,7 @@ import 'package:madrasa_app/core/models/request_model.dart';
 import 'package:madrasa_app/core/services/firestore_service.dart';
 import 'package:madrasa_app/core/services/logger.dart';
 import 'package:madrasa_app/core/services/auth_service.dart';
+import 'package:madrasa_app/core/theme.dart';
 
 class CreateRequestScreen extends StatefulWidget {
   const CreateRequestScreen({super.key});
@@ -140,17 +141,16 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('طلب جديد')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('نوع الطلب',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              SegmentedButton<String>(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader(Icons.category_outlined, 'نوع الطلب'),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<String>(
                 segments: const [
                   ButtonSegment(
                     value: 'purchase',
@@ -167,85 +167,86 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 onSelectionChanged: (v) =>
                     setState(() => _category = v.first),
               ),
-              const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 24),
+            _sectionHeader(Icons.inventory, 'التفاصيل'),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText:
+                    _category == 'purchase' ? 'اسم الغرض' : 'وصف العطل',
+                prefixIcon: const Icon(Icons.inventory),
+              ),
+            ),
+            if (_category == 'purchase') ...[
+              const SizedBox(height: 14),
               TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText:
-                      _category == 'purchase' ? 'اسم الغرض' : 'وصف العطل',
-                  prefixIcon: const Icon(Icons.inventory),
+                controller: _quantityController,
+                decoration: const InputDecoration(
+                  labelText: 'الكمية',
+                  prefixIcon: Icon(Icons.numbers),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _priceController,
+                decoration: const InputDecoration(
+                  labelText: 'السعر التقديري (د.ل)',
+                  prefixIcon: Icon(Icons.attach_money),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+            if (_category == 'maintenance') ...[
+              const SizedBox(height: 14),
+              TextField(
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'موقع العطل',
+                  prefixIcon: Icon(Icons.location_on),
                 ),
               ),
-              if (_category == 'purchase') ...[
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _quantityController,
-                  decoration: const InputDecoration(
-                    labelText: 'الكمية',
-                    prefixIcon: Icon(Icons.numbers),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _priceController,
-                  decoration: const InputDecoration(
-                    labelText: 'السعر التقديري (د.ل)',
-                    prefixIcon: Icon(Icons.attach_money),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ],
-              if (_category == 'maintenance') ...[
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'موقع العطل',
-                    prefixIcon: Icon(Icons.location_on),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text('متطلبات الصيانة',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                ...List.generate(_maintenanceControllers.length, (i) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _maintenanceControllers[i],
-                            decoration: InputDecoration(
-                              labelText: 'متطلب ${i + 1}',
-                              prefixIcon: const Icon(Icons.checklist),
-                            ),
+              const SizedBox(height: 20),
+              _sectionHeader(Icons.checklist, 'متطلبات الصيانة'),
+              const SizedBox(height: 10),
+              ...List.generate(_maintenanceControllers.length, (i) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _maintenanceControllers[i],
+                          decoration: InputDecoration(
+                            labelText: 'متطلب ${i + 1}',
+                            prefixIcon: const Icon(Icons.checklist),
                           ),
                         ),
-                        if (_maintenanceControllers.length > 1)
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline,
-                                color: Colors.red),
-                            onPressed: () => _removeMaintenanceItem(i),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
-                TextButton.icon(
-                  onPressed: _addMaintenanceItem,
-                  icon: const Icon(Icons.add),
-                  label: const Text('إضافة متطلب آخر'),
-                ),
-              ],
-              const SizedBox(height: 20),
-              Text('درجة الأهمية',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              SegmentedButton<String>(
+                      ),
+                      if (_maintenanceControllers.length > 1)
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline,
+                              color: Colors.red),
+                          onPressed: () => _removeMaintenanceItem(i),
+                        ),
+                    ],
+                  ),
+                );
+              }),
+              TextButton.icon(
+                onPressed: _addMaintenanceItem,
+                icon: const Icon(Icons.add),
+                label: const Text('إضافة متطلب آخر'),
+              ),
+            ],
+            const SizedBox(height: 20),
+            _sectionHeader(Icons.flag_outlined, 'درجة الأهمية'),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<String>(
                 segments: const [
                   ButtonSegment(
                     value: 'urgent',
@@ -267,64 +268,82 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 onSelectionChanged: (v) =>
                     setState(() => _priority = v.first),
               ),
-              const SizedBox(height: 20),
-              InkWell(
-                onTap: _pickImage,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(12),
-                    color: theme.colorScheme.surfaceContainerLow,
-                  ),
-                  child: _selectedImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            File(_selectedImage!.path),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        )
-                      : Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add_photo_alternate,
-                                  size: 40,
-                                  color: theme.colorScheme.onSurfaceVariant),
-                              const SizedBox(height: 8),
-                              Text(
-                                'إضافة صورة',
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
+            ),
+            const SizedBox(height: 20),
+            _sectionHeader(Icons.add_photo_alternate, 'صورة (اختياري)'),
+            const SizedBox(height: 10),
+            InkWell(
+              onTap: _pickImage,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 140,
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.colorScheme.outline),
+                  borderRadius: BorderRadius.circular(16),
+                  color: theme.colorScheme.surfaceContainerLow,
+                ),
+                child: _selectedImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(
+                          File(_selectedImage!.path),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
                         ),
-                ),
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_photo_alternate,
+                                size: 40,
+                                color: theme.colorScheme.onSurfaceVariant),
+                            const SizedBox(height: 8),
+                            Text(
+                              'اضغط لإضافة صورة',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
               ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _loading ? null : _submit,
-                  icon: _loading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.send),
-                  label: Text(_loading ? 'جاري الإرسال...' : 'إرسال الطلب'),
-                ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _loading ? null : _submit,
+                icon: _loading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.send),
+                label: Text(_loading ? 'جاري الإرسال...' : 'إرسال الطلب'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _sectionHeader(IconData icon, String title) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: scheme.primary),
+        const SizedBox(width: 8),
+        Text(title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: scheme.primary,
+            )),
+      ],
     );
   }
 }

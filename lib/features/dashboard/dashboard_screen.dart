@@ -56,6 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
@@ -83,6 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+            child: DecorativeDivider(),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: SingleChildScrollView(
@@ -114,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.error_outline,
-                            size: 48, color: Colors.grey[400]),
+                            size: 48, color: scheme.onSurfaceVariant),
                         const SizedBox(height: 12),
                         const Text('حدث خطأ في تحميل الطلبات'),
                         const SizedBox(height: 4),
@@ -124,7 +129,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             '${snapshot.error}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                fontSize: 12, color: Colors.grey[500]),
+                                fontSize: 12, color: scheme.onSurfaceVariant),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -156,17 +161,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.inbox_outlined,
-                            size: 64, color: Colors.grey[300]),
+                            size: 64, color: scheme.onSurfaceVariant.withValues(alpha: 0.4)),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'لا توجد طلبات للمراجعة',
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
+                              fontSize: 16, fontWeight: FontWeight.w600, color: scheme.onSurface),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'عندما يرسل الأعضاء طلبات جديدة، ستظهر هنا',
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: TextStyle(color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -199,6 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final price = r['estimatedPrice'];
     final priceText =
         price != null && price != 0 ? '${price.toStringAsFixed(0)} د.ل' : null;
+    final scheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -217,26 +223,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Container(height: 3, color: priColor),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
+                      Container(
+                        width: 4,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: priColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          r['itemName'] as String,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              r['itemName'] as String,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(r['userName'] as String,
+                                style: TextStyle(
+                                    fontSize: 13, color: scheme.onSurfaceVariant)),
+                          ],
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: statColor.withValues(alpha: 0.15),
+                          color: statColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -250,71 +276,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(Icons.person_outline,
-                          size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(r['userName'] as String,
-                          style: TextStyle(
-                              fontSize: 13, color: Colors.grey[600])),
-                      const SizedBox(width: 12),
+                      _metaChip(Icons.flag_outlined, AppTheme.priorityLabel(priority), priColor),
+                      const SizedBox(width: 8),
+                      _metaChip(
+                        r['category'] == 'purchase' ? Icons.shopping_cart : Icons.build,
+                        r['category'] == 'purchase' ? 'شراء' : 'صيانة',
+                        scheme.onSurfaceVariant,
+                      ),
                       if ((r['quantity'] as num?)?.toInt() != null &&
                           (r['quantity'] as num).toInt() > 1) ...[
-                        Icon(Icons.numbers,
-                            size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text('x${(r['quantity'] as num).toInt()}',
-                            style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600])),
-                        const SizedBox(width: 12),
-                      ],
-                      Icon(Icons.flag_outlined,
-                          size: 14, color: priColor),
-                      const SizedBox(width: 4),
-                      Text(AppTheme.priorityLabel(priority),
-                          style: TextStyle(
-                              fontSize: 13, color: priColor)),
-                      if (priceText != null) ...[
-                        const SizedBox(width: 12),
-                        Icon(Icons.attach_money,
-                            size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(priceText,
-                            style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600])),
+                        const SizedBox(width: 8),
+                        _metaChip(Icons.numbers,
+                            'x${(r['quantity'] as num).toInt()}',
+                            scheme.onSurfaceVariant),
                       ],
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Icon(Icons.calendar_today,
-                          size: 12, color: Colors.grey[500]),
+                          size: 12, color: scheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         DateFormat.yMd().format(
                             DateTime.parse(r['createdAt'])),
                         style: TextStyle(
-                            fontSize: 12, color: Colors.grey[500]),
+                            fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        r['category'] == 'purchase'
-                            ? Icons.shopping_cart
-                            : Icons.build,
-                        size: 12,
-                        color: Colors.grey[500],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        r['category'] == 'purchase' ? 'شراء' : 'صيانة',
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.grey[500]),
-                      ),
+                      if (priceText != null) ...[
+                        const Spacer(),
+                        Text(priceText,
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: scheme.primary)),
+                      ],
                     ],
                   ),
                 ],
@@ -326,11 +326,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _metaChip(IconData icon, String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: color),
+        const SizedBox(width: 3),
+        Text(label,
+            style: TextStyle(fontSize: 12, color: color)),
+      ],
+    );
+  }
+
   Widget _filterChip(String value, String label) {
     final selected = _filter == value;
+    final scheme = Theme.of(context).colorScheme;
     return FilterChip(
-      label: Text(label),
+      label: Text(label, style: TextStyle(
+        fontSize: 13,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+        color: selected ? scheme.primary : scheme.onSurfaceVariant,
+      )),
       selected: selected,
+      selectedColor: scheme.primaryContainer,
+      checkmarkColor: scheme.primary,
+      showCheckmark: false,
       onSelected: (_) => setState(() => _filter = value),
     );
   }

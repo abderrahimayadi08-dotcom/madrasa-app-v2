@@ -31,6 +31,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('${labels[status]} الطلب'),
         content: Text('هل أنت متأكد من ${_actionLabel(status)} هذا الطلب؟'),
         actions: [
@@ -103,6 +104,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final priority = r['priority'] as String;
     final statColor = AppTheme.statusColor(status);
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(r['itemName'] as String)),
@@ -119,32 +121,37 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     ? Image.network(
                         r['imageUrl'],
                         height: 200,
+                        width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           height: 200,
-                          color: theme.colorScheme.surfaceContainerLow,
+                          color: scheme.surfaceContainerLow,
                           child: Icon(Icons.image,
                               size: 64,
-                              color: theme.colorScheme.onSurfaceVariant),
+                              color: scheme.onSurfaceVariant),
                         ),
                       )
                     : Container(
                         height: 200,
-                        color: theme.colorScheme.surfaceContainerLow,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         child: Icon(Icons.image,
                             size: 64,
-                            color: theme.colorScheme.onSurfaceVariant),
+                            color: scheme.onSurfaceVariant),
                       ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
-                    color: statColor.withValues(alpha: 0.15),
+                    color: statColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -152,16 +159,17 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     style: TextStyle(
                       color: statColor,
                       fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
                     color: AppTheme.priorityColor(priority)
-                        .withValues(alpha: 0.15),
+                        .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -169,12 +177,18 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     style: TextStyle(
                       color: AppTheme.priorityColor(priority),
                       fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: DecorativeDivider(),
+            ),
+            const SizedBox(height: 4),
             _infoRow(Icons.person_outline, 'مقدم الطلب', r['userName']),
             _infoRow(
                 Icons.category_outlined, 'النوع',
@@ -193,19 +207,19 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             if (r['maintenanceItems'] != null &&
                 (r['maintenanceItems'] as List).isNotEmpty) ...[
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.checklist, size: 20, color: Colors.grey[600]),
+                    Icon(Icons.checklist, size: 20, color: scheme.onSurfaceVariant),
                     const SizedBox(width: 12),
                     SizedBox(
                       width: 80,
                       child: Text(
                         'المتطلبات:',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -233,12 +247,16 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   _formatDate(r['createdAt'])),
             if (status == 'pending') ...[
               const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: DecorativeDivider(),
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _commentController,
                 decoration: const InputDecoration(
                   labelText: 'ملاحظات (اختياري)',
+                  prefixIcon: Icon(Icons.comment),
                 ),
                 maxLines: 3,
               ),
@@ -273,7 +291,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             icon: const Icon(Icons.close),
                             label: const Text('رفض'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: theme.colorScheme.error,
+                              foregroundColor: scheme.error,
                             ),
                           ),
                         ),
@@ -284,8 +302,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             ],
             if (status == 'approved') ...[
               const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: DecorativeDivider(),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
@@ -299,7 +320,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       : const Icon(Icons.task_alt),
                   label: const Text('تم - إنجاز الطلب'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: scheme.tertiary,
                   ),
                 ),
               ),
@@ -321,24 +342,25 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
+          Icon(icon, size: 20, color: scheme.onSurfaceVariant),
           const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 90,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey,
+                color: scheme.onSurfaceVariant,
               ),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 15))),
         ],
       ),
     );

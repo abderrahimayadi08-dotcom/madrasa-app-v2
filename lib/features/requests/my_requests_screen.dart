@@ -37,6 +37,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text('مرحباً ${widget.user.name}'),
@@ -64,6 +65,10 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
       ),
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+            child: DecorativeDivider(),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: SingleChildScrollView(
@@ -93,7 +98,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.error_outline,
-                            size: 48, color: Colors.grey[400]),
+                            size: 48, color: scheme.onSurfaceVariant),
                         const SizedBox(height: 12),
                         const Text('حدث خطأ في تحميل الطلبات'),
                         const SizedBox(height: 4),
@@ -103,7 +108,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                             '${snapshot.error}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                fontSize: 12, color: Colors.grey[500]),
+                                fontSize: 12, color: scheme.onSurfaceVariant),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -133,19 +138,19 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.inbox_outlined,
-                              size: 72, color: Colors.grey[300]),
+                              size: 72, color: scheme.onSurfaceVariant.withValues(alpha: 0.4)),
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'لا توجد طلبات بعد',
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w600),
+                                fontSize: 18, fontWeight: FontWeight.w600, color: scheme.onSurface),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'اضغط على الزر (+) في الأسفل\nلإرسال طلب شراء أو صيانة',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                fontSize: 14, color: Colors.grey[600]),
+                                fontSize: 14, color: scheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 24),
                           FilledButton.icon(
@@ -193,6 +198,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final priority = r['priority'] as String;
     final priColor = AppTheme.priorityColor(priority);
     final statColor = AppTheme.statusColor(status);
+    final scheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -201,20 +207,21 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         children: [
           Container(height: 3, color: priColor),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(
-                      r['category'] == 'purchase'
-                          ? Icons.shopping_cart
-                          : Icons.build,
-                      size: 18,
-                      color: Colors.grey[600],
+                    Container(
+                      width: 4,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: priColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         r['itemName'] as String,
@@ -226,9 +233,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: statColor.withValues(alpha: 0.15),
+                        color: statColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -242,35 +249,36 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _metaChip(Icons.flag_outlined, AppTheme.priorityLabel(priority), priColor),
+                    const SizedBox(width: 8),
+                    _metaChip(
+                      r['category'] == 'purchase' ? Icons.shopping_cart : Icons.build,
+                      r['category'] == 'purchase' ? 'شراء' : 'صيانة',
+                      scheme.onSurfaceVariant,
+                    ),
+                    if ((r['quantity'] as num?)?.toInt() != null &&
+                        (r['quantity'] as num).toInt() > 1) ...[
+                      const SizedBox(width: 8),
+                      _metaChip(Icons.numbers,
+                          'x${(r['quantity'] as num).toInt()}',
+                          scheme.onSurfaceVariant),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    if ((r['quantity'] as num?)?.toInt() != null &&
-                        (r['quantity'] as num).toInt() > 1) ...[
-                      Icon(Icons.numbers,
-                          size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text('x${(r['quantity'] as num).toInt()}',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600])),
-                      const SizedBox(width: 12),
-                    ],
-                    Icon(Icons.flag_outlined,
-                        size: 14, color: priColor),
-                    const SizedBox(width: 4),
-                    Text(AppTheme.priorityLabel(priority),
-                        style: TextStyle(
-                            fontSize: 13, color: priColor)),
-                    const SizedBox(width: 12),
                     Icon(Icons.calendar_today,
-                        size: 12, color: Colors.grey[500]),
+                        size: 12, color: scheme.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat.yMd().format(
                           DateTime.parse(r['createdAt'])),
                       style: TextStyle(
-                          fontSize: 12, color: Colors.grey[500]),
+                          fontSize: 12, color: scheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -282,11 +290,31 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     );
   }
 
+  Widget _metaChip(IconData icon, String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: color),
+        const SizedBox(width: 3),
+        Text(label,
+            style: TextStyle(fontSize: 12, color: color)),
+      ],
+    );
+  }
+
   Widget _filterChip(String value, String label) {
     final selected = _filter == value;
+    final scheme = Theme.of(context).colorScheme;
     return FilterChip(
-      label: Text(label),
+      label: Text(label, style: TextStyle(
+        fontSize: 13,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+        color: selected ? scheme.primary : scheme.onSurfaceVariant,
+      )),
       selected: selected,
+      selectedColor: scheme.primaryContainer,
+      checkmarkColor: scheme.primary,
+      showCheckmark: false,
       onSelected: (_) => setState(() => _filter = value),
     );
   }

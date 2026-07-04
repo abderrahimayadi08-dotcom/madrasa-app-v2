@@ -67,14 +67,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _showError('يجب تسجيل الدخول أولاً');
         return;
       }
-      final cred = await user.reauthenticateWithCredential(
+      await user.reauthenticateWithCredential(
         auth.EmailAuthProvider.credential(email: user.email!, password: password),
       );
-      if (cred.user != null) {
-        final snapshot = await _firestore.collection('users').get();
-        _users = snapshot.docs.map((d) => d.data()).toList();
-        setState(() => _adminMode = true);
-      }
+      if (!mounted) return;
+      final snapshot = await _firestore.collection('users').get();
+      _users = snapshot.docs.map((d) => d.data()).toList();
+      setState(() => _adminMode = true);
     } on auth.FirebaseAuthException catch (e) {
       _showError(e.message ?? 'كلمة السر خطأ');
     } catch (e) {
@@ -115,33 +114,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('الإعدادات')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text('الألوان',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+          _sectionHeader(Icons.palette_outlined, 'الألوان'),
+          const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: _colorOptions.map((opt) {
               final selected = _selectedColor.value == opt.color.value;
               return ChoiceChip(
                 label: Text(opt.label),
                 selected: selected,
-                selectedColor: opt.color.withValues(alpha: 0.3),
+                selectedColor: opt.color.withValues(alpha: 0.25),
                 onSelected: (_) => _setColor(opt.color),
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
-          Text('البريد الإلكتروني',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 28),
+          _sectionHeader(Icons.email_outlined, 'البريد الإلكتروني'),
+          const SizedBox(height: 12),
           TextField(
             controller: TextEditingController(text: _auth.currentUser?.email ?? ''),
             decoration: const InputDecoration(
@@ -149,55 +145,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             enabled: false,
           ),
-          const SizedBox(height: 32),
-          const Divider(),
-          const SizedBox(height: 16),
-          Text('إدارة المهام',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 28),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: DecorativeDivider(),
+          ),
+          const SizedBox(height: 8),
+          _sectionHeader(Icons.admin_panel_settings, 'إدارة المهام'),
           const SizedBox(height: 4),
           Text('أدخل كلمة السر للدخول إلى لوحة إدارة المهام',
-              style: TextStyle(color: Colors.grey[600])),
-          const SizedBox(height: 12),
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
+          const SizedBox(height: 14),
           if (!_adminMode)
-            Column(
-              children: [
-                TextField(
-                  controller: _adminPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'كلمة السر',
-                    prefixIcon: Icon(Icons.lock_outlined),
-                  ),
+            Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _adminPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'كلمة السر',
+                        prefixIcon: Icon(Icons.lock_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _adminLoading ? null : _enterAdminMode,
+                        icon: _adminLoading
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.admin_panel_settings),
+                        label: const Text('دخول'),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: _adminLoading ? null : _enterAdminMode,
-                    icon: _adminLoading
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.admin_panel_settings),
-                    label: const Text('دخول'),
-                  ),
-                ),
-              ],
+              ),
             ),
           if (_adminMode) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text('قائمة المستخدمين',
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: scheme.primary,
+                )),
+            const SizedBox(height: 10),
             ..._users.map((u) => _userCard(u)),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _sectionHeader(IconData icon, String title) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: scheme.primary),
+        const SizedBox(width: 8),
+        Text(title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: scheme.primary,
+            )),
+      ],
     );
   }
 
@@ -208,12 +231,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'finance_manager': 'مدير مالية',
       'maintenance_manager': 'مدير صيانة',
     };
+    final scheme = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: scheme.primaryContainer,
+              child: Text(
+                (u['name'] as String).isNotEmpty
+                    ? (u['name'] as String)[0].toUpperCase()
+                    : '?',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: scheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +262,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontWeight: FontWeight.w600, fontSize: 15)),
                   Text(u['email'] as String,
                       style: TextStyle(
-                          fontSize: 13, color: Colors.grey[600])),
+                          fontSize: 13, color: scheme.onSurfaceVariant)),
                 ],
               ),
             ),
