@@ -8,6 +8,7 @@ import 'package:madrasa_app/features/auth/auth_gate.dart';
 import 'package:madrasa_app/features/settings/settings_screen.dart';
 import 'package:madrasa_app/core/services/notification_service.dart';
 import 'package:madrasa_app/features/dashboard/request_detail_screen.dart';
+import 'package:madrasa_app/features/notifications/notification_screen.dart';
 import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -61,6 +62,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: Text(_title),
         actions: [
+          ValueListenableBuilder<int>(
+            valueListenable: NotificationService.unreadCount,
+            builder: (_, count, __) => Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                  ),
+                ),
+                if (count > 0)
+                  Positioned(
+                    left: 22,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        count > 99 ? '99+' : '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.push(

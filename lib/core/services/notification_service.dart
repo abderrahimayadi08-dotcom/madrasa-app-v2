@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:madrasa_app/core/services/logger.dart';
 
@@ -9,6 +10,8 @@ class NotificationService {
   static bool _initialized = false;
   static Set<String> _knownIds = {};
   static StreamSubscription<QuerySnapshot>? _subscription;
+  static ValueNotifier<int> unreadCount = ValueNotifier<int>(0);
+  static StreamSubscription<QuerySnapshot>? _unreadSub;
 
   static Future<void> init() async {
     if (_initialized) return;
@@ -39,6 +42,16 @@ class NotificationService {
     final user = auth.FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    _unreadSub?.cancel();
+    _unreadSub = FirebaseFirestore.instance
+        .collection('notifications')
+        .where('userId', isEqualTo: user.uid)
+        .where('read', isEqualTo: false)
+        .snapshots()
+        .listen((snapshot) {
+      unreadCount.value = snapshot.docs.length;
+    });
+
     _subscription?.cancel();
     _subscription = FirebaseFirestore.instance
         .collection('requests')
@@ -46,6 +59,27 @@ class NotificationService {
         .snapshots()
         .listen((snapshot) {
       for (final change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.modified &&
+            !_knownIds.contains('${change.doc.id}_status')) {
+          _knownIds.add('${change.doc.id}_status');
+          final data = change.doc.data() as Map<String, dynamic>;
+          final status = data['status'] as String? ?? '';
+          final statusLabels = {
+            'approved': 'تمت الموافقة على طلبك',
+            'rejected': 'تم رفض طلبك',
+            'hold': 'طلبك معلق',
+            'completed': 'تم إنجاز طلبك',
+          };
+          final title = statusLabels[status] ?? 'تحديث الطلب';
+          final body = '${data['itemName'] ?? ''}';
+          _saveAndShow(
+            user.uid,
+            title,
+            body,
+            data['category'] as String? ?? '',
+            status,
+          );
+        }
         if (change.type == DocumentChangeType.added &&
             !_knownIds.contains(change.doc.id)) {
           _knownIds.add(change.doc.id);
@@ -62,11 +96,11 @@ class NotificationService {
       final role = doc.data()?['role'] as String?;
       if (role == null ||
           (role != 'finance_manager' && role != 'maintenance_manager')) return;
-      _listenForNewRequests(role);
+      _listenForNewRequests(role, user.uid);
     });
   }
 
-  static void _listenForNewRequests(String role) {
+  static void _listenForNewRequests(String role, String uid) {
     _subscription?.cancel();
     _subscription = FirebaseFirestore.instance
         .collection('requests')
@@ -82,10 +116,42 @@ class NotificationService {
               ? 'طلب شراء جديد'
               : 'طلب صيانة جديد';
           final body = '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''}';
-          _showNotification(title, body);
+          _saveAndShow(
+            uid,
+            title,
+            body,
+            data['category'] as String? ?? '',
+            'pending',
+          );
         }
       }
     });
+  }
+
+  static Future<void> _saveAndShow(
+    String userId,
+    String title,
+    String body,
+    String category,
+    String status,
+  ) async {
+    try {
+      final doc = FirebaseFirestore.instance.collection('notifications').doc();
+      await doc.set({
+        'id': doc.id,
+        'userId': userId,
+        'title': title,
+        'body': body,
+        'category': category,
+        'status': status,
+        'read': false,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      Logger.error('Failed to save notification: $e');
+    }
+
+    _showNotification(title, body);
   }
 
   static void _showNotification(String title, String body) {
@@ -109,5 +175,7 @@ class NotificationService {
   static void stopListening() {
     _subscription?.cancel();
     _subscription = null;
+    _unreadSub?.cancel();
+    _unreadSub = null;
   }
 }
