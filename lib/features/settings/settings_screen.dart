@@ -203,6 +203,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             ..._users.map((u) => _userCard(u)),
           ],
+          const SizedBox(height: 32),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: DecorativeDivider(),
+          ),
+          _sectionHeader(Icons.info_outline, 'معلومات التقنية'),
+          const SizedBox(height: 8),
+          Text('المشروع: ${_firestore.app.options.projectId}',
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 4),
+          Text('البريد: ${_auth.currentUser?.email ?? '—'}',
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
         ],
       ),
     );
