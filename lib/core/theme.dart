@@ -6,6 +6,7 @@ class AppTheme {
 
   static const Color pending = Color(0xFFFF9800);
   static const Color approved = Color(0xFF4CAF50);
+  static const Color completed = Color(0xFF1565C0);
   static const Color rejected = Color(0xFFF44336);
   static const Color hold = Color(0xFF9E9E9E);
   static const Color urgent = Color(0xFFD32F2F);
@@ -120,6 +121,8 @@ class AppTheme {
         return pending;
       case 'approved':
         return approved;
+      case 'completed':
+        return completed;
       case 'rejected':
         return rejected;
       case 'hold':
@@ -135,6 +138,8 @@ class AppTheme {
         return 'قيد المراجعة';
       case 'approved':
         return 'موافق عليه';
+      case 'completed':
+        return 'تم';
       case 'rejected':
         return 'مرفوض';
       case 'hold':

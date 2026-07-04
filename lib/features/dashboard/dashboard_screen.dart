@@ -85,6 +85,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _filterChip('rejected', 'مرفوض'),
                   const SizedBox(width: 6),
                   _filterChip('hold', 'معلق'),
+                  const SizedBox(width: 6),
+                  _filterChip('completed', 'تم'),
                 ],
               ),
             ),

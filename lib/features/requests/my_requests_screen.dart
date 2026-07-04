@@ -64,6 +64,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   _filterChip('approved', 'موافق'),
                   const SizedBox(width: 6),
                   _filterChip('rejected', 'مرفوض'),
+                  const SizedBox(width: 6),
+                  _filterChip('completed', 'تم'),
                 ],
               ),
             ),

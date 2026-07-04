@@ -26,6 +26,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       'approved': 'موافقة',
       'rejected': 'رفض',
       'hold': 'تعليق',
+      'completed': 'إنجاز',
     };
     showDialog(
       context: context,
@@ -82,6 +83,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         return 'رفض';
       case 'hold':
         return 'تعليق';
+      case 'completed':
+        return 'إنجاز';
       default:
         return status;
     }
@@ -278,6 +281,28 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     ),
                   ],
                 ),
+            ],
+            if (status == 'approved') ...[
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _loading ? null : () => _confirmAndUpdate('completed'),
+                  icon: _loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.task_alt),
+                  label: const Text('تم - إنجاز الطلب'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                  ),
+                ),
+              ),
             ],
           ],
         ),
