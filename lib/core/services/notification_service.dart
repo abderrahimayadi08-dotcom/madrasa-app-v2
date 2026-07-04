@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -59,7 +60,8 @@ class NotificationService {
         .then((doc) {
       if (!doc.exists) return;
       final role = doc.data()?['role'] as String?;
-      if (role != 'finance_manager' && role != 'maintenance_manager') return;
+      if (role == null ||
+          (role != 'finance_manager' && role != 'maintenance_manager')) return;
       _listenForNewRequests(role);
     });
   }
