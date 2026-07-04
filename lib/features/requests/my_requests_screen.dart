@@ -250,7 +250,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   }
 
   Widget _requestCard(QueryDocumentSnapshot r) {
-    final d = r.data()!;
+    final d = r.data() as Map<String, dynamic>;
     final status = d['status'] as String;
     final priority = d['priority'] as String;
     final priColor = AppTheme.priorityColor(priority);

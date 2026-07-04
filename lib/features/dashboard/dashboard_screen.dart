@@ -246,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _requestCard(QueryDocumentSnapshot r) {
-    final d = r.data()!;
+    final d = r.data() as Map<String, dynamic>;
     final status = d['status'] as String;
     final priority = d['priority'] as String;
     final priColor = AppTheme.priorityColor(priority);
@@ -393,7 +393,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (d is Timestamp) return d.toDate();
     return DateTime.now();
   }
-}
 
   Widget _filterChip(String value, String label) {
     final selected = _filter == value;
