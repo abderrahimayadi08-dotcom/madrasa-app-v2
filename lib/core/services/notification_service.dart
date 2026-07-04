@@ -1,13 +1,13 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:madrasa_app/core/services/logger.dart';
 
 class NotificationService {
-  static final _messaging = FirebaseMessaging.instance;
   static final _localNotifications = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
+  static Set<String> _knownIds = {};
+  static StreamSubscription<QuerySnapshot>? _subscription;
 
   static Future<void> init() async {
     if (_initialized) return;
@@ -27,43 +27,68 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
-      await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      FirebaseMessaging.onMessage.listen(_handleForeground);
-      FirebaseMessaging.onBackgroundMessage(_handleBackground);
       _initialized = true;
-      Logger.info('Notification service initialized');
+      Logger.info('Local notification service initialized');
     } catch (e) {
       Logger.error('Notification init failed: $e');
     }
   }
 
-  static Future<void> saveToken() async {
-    try {
-      final token = await _messaging.getToken();
-      if (token != null) {
-        final user = auth.FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({'fcmToken': token}, SetOptions(merge: true));
-          Logger.info('FCM token saved');
+  static void startListening() {
+    final user = auth.FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    _subscription?.cancel();
+    _subscription = FirebaseFirestore.instance
+        .collection('requests')
+        .where('userId', isEqualTo: user.uid)
+        .snapshots()
+        .listen((snapshot) {
+      for (final change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added &&
+            !_knownIds.contains(change.doc.id)) {
+          _knownIds.add(change.doc.id);
         }
       }
-    } catch (e) {
-      Logger.error('Failed to save FCM token: $e');
-    }
+    });
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get()
+        .then((doc) {
+      if (!doc.exists) return;
+      final role = doc.data()?['role'] as String?;
+      if (role != 'finance_manager' && role != 'maintenance_manager') return;
+      _listenForNewRequests(role);
+    });
   }
 
-  static void _handleForeground(RemoteMessage message) {
-    final title = message.notification?.title ?? 'إشعار';
-    final body = message.notification?.body ?? '';
+  static void _listenForNewRequests(String role) {
+    _subscription?.cancel();
+    _subscription = FirebaseFirestore.instance
+        .collection('requests')
+        .where('assignedRole', isEqualTo: role)
+        .snapshots()
+        .listen((snapshot) {
+      for (final change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added &&
+            !_knownIds.contains(change.doc.id)) {
+          _knownIds.add(change.doc.id);
+          final data = change.doc.data() as Map<String, dynamic>;
+          final title = data['category'] == 'purchase'
+              ? 'طلب شراء جديد'
+              : 'طلب صيانة جديد';
+          final body = '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''}';
+          _showNotification(title, body);
+        }
+      }
+    });
+  }
+
+  static void _showNotification(String title, String body) {
     _localNotifications.show(
-      message.hashCode,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title,
       body,
       const NotificationDetails(
@@ -77,8 +102,8 @@ class NotificationService {
     );
   }
 
-  @pragma('vm:entry-point')
-  static Future<void> _handleBackground(RemoteMessage message) async {
-    Logger.info('Background notification: ${message.messageId}');
+  static void stopListening() {
+    _subscription?.cancel();
+    _subscription = null;
   }
 }

@@ -13,7 +13,6 @@ void main() async {
   try {
     await Firebase.initializeApp();
     await NotificationService.init();
-    await NotificationService.saveToken();
     Logger.info('Firebase initialized');
   } catch (e) {
     Logger.error('Firebase init failed: $e');

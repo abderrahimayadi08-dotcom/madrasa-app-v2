@@ -6,6 +6,7 @@ import 'package:madrasa_app/core/services/firestore_service.dart';
 import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/features/auth/auth_gate.dart';
 import 'package:madrasa_app/features/settings/settings_screen.dart';
+import 'package:madrasa_app/core/services/notification_service.dart';
 import 'package:madrasa_app/features/dashboard/request_detail_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -21,6 +22,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _firestoreService = FirestoreService();
   final _authService = AuthService();
   String _filter = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.startListening();
+  }
+
+  @override
+  void dispose() {
+    NotificationService.stopListening();
+    super.dispose();
+  }
 
   String get _roleLabel =>
       widget.user.isFinanceManager ? 'finance_manager' : 'maintenance_manager';
