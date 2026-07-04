@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color _seed = Color(0xFF1B5E20);
+  static const Color defaultSeed = Color(0xFF1B5E20);
+  static final seedNotifier = ValueNotifier<Color>(defaultSeed);
 
   static const Color pending = Color(0xFFFF9800);
   static const Color approved = Color(0xFF4CAF50);
@@ -11,9 +12,9 @@ class AppTheme {
   static const Color medium = Color(0xFFFF9800);
   static const Color low = Color(0xFF4CAF50);
 
-  static ThemeData get light => ThemeData(
+  static ThemeData light({Color seed = defaultSeed}) => ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: _seed,
+        colorSchemeSeed: seed,
         brightness: Brightness.light,
         appBarTheme: const AppBarTheme(
           centerTitle: true,
@@ -65,9 +66,9 @@ class AppTheme {
         ),
       );
 
-  static ThemeData get dark => ThemeData(
+  static ThemeData dark({Color seed = defaultSeed}) => ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: _seed,
+        colorSchemeSeed: seed,
         brightness: Brightness.dark,
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
         cardTheme: const CardThemeData(

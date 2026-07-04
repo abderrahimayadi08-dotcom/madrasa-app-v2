@@ -17,6 +17,9 @@ dependencies:
   cloudinary_flutter: ^1.1.0
   cloudinary_url_gen: ^1.1.0
   intl: ^0.20.2
+  shared_preferences: ^2.5.3
+  firebase_messaging: ^15.2.4
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

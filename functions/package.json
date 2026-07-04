@@ -1,0 +1,9 @@
+{
+    "name": "madrasa-app-notifications",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "firebase-functions": "^6.3.2",
+        "firebase-admin": "^13.1.0"
+    }
+}

@@ -5,6 +5,7 @@ import 'package:madrasa_app/core/services/auth_service.dart';
 import 'package:madrasa_app/core/services/firestore_service.dart';
 import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/features/auth/auth_gate.dart';
+import 'package:madrasa_app/features/settings/settings_screen.dart';
 import 'package:madrasa_app/features/requests/create_request_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -27,6 +28,13 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
       appBar: AppBar(
         title: Text('مرحباً ${widget.user.name}'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
