@@ -19,6 +19,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
   final _locationController = TextEditingController();
+  final _notesController = TextEditingController();
   final _firestoreService = FirestoreService();
   final _authService = AuthService();
   final _picker = ImagePicker();
@@ -27,6 +28,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   String _priority = 'medium';
   XFile? _selectedImage;
   bool _loading = false;
+  bool _priceUnknown = false;
   final List<TextEditingController> _maintenanceControllers = [];
 
   @override
@@ -35,9 +37,86 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
     _maintenanceControllers.add(TextEditingController());
   }
 
-  Future<void> _pickImage() async {
-    final file = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _pickImageSource(ImageSource source) async {
+    final file = await _picker.pickImage(source: source);
     if (file != null) setState(() => _selectedImage = file);
+  }
+
+  void _showImagePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('اختيار صورة',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _pickImageSource(ImageSource.camera);
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.camera_alt_outlined,
+                                size: 40,
+                                color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(height: 8),
+                            const Text('الكاميرا'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _pickImageSource(ImageSource.gallery);
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.photo_library_outlined,
+                                size: 40,
+                                color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(height: 8),
+                            const Text('المعرض'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _addMaintenanceItem() {
@@ -70,9 +149,9 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
       _showError('يجب تسجيل الدخول أولاً');
       return;
     }
-    final price = double.tryParse(_priceController.text);
-    if (price == null && _category == 'purchase') {
-      _showError('يرجى إدخال سعر تقديري صحيح');
+    final price = _priceUnknown ? null : double.tryParse(_priceController.text);
+    if (price == null && !_priceUnknown && _category == 'purchase') {
+      _showError('يرجى إدخال سعر تقديري أو اختيار "غير معروف"');
       return;
     }
     final qty = int.tryParse(_quantityController.text) ?? 1;
@@ -103,6 +182,9 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
         status: 'pending',
         assignedRole:
             _category == 'purchase' ? 'finance_manager' : 'maintenance_manager',
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
         createdAt: DateTime.now(),
       );
       await _firestoreService.createRequest(request);
@@ -130,6 +212,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
     _priceController.dispose();
     _quantityController.dispose();
     _locationController.dispose();
+    _notesController.dispose();
     for (final c in _maintenanceControllers) {
       c.dispose();
     }
@@ -139,6 +222,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('طلب جديد')),
       body: SingleChildScrollView(
@@ -190,13 +274,26 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 14),
-              TextField(
-                controller: _priceController,
-                decoration: const InputDecoration(
-                  labelText: 'السعر التقديري (د.ل)',
-                  prefixIcon: Icon(Icons.attach_money),
-                ),
-                keyboardType: TextInputType.number,
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _priceController,
+                      enabled: !_priceUnknown,
+                      decoration: InputDecoration(
+                        labelText: 'السعر التقديري (د.ل)',
+                        prefixIcon: const Icon(Icons.attach_money),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: const Text('غير معروف'),
+                    selected: _priceUnknown,
+                    onSelected: (v) => setState(() => _priceUnknown = v),
+                  ),
+                ],
               ),
             ],
             if (_category == 'maintenance') ...[
@@ -242,6 +339,17 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
               ),
             ],
             const SizedBox(height: 20),
+            _sectionHeader(Icons.notes_outlined, 'ملاحظة'),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                labelText: 'ملاحظات إضافية (اختياري)',
+                prefixIcon: Icon(Icons.notes_outlined),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 20),
             _sectionHeader(Icons.flag_outlined, 'درجة الأهمية'),
             const SizedBox(height: 10),
             SizedBox(
@@ -273,23 +381,43 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
             _sectionHeader(Icons.add_photo_alternate, 'صورة (اختياري)'),
             const SizedBox(height: 10),
             InkWell(
-              onTap: _pickImage,
+              onTap: _showImagePicker,
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  border: Border.all(color: theme.colorScheme.outline),
+                  border: Border.all(color: scheme.outline),
                   borderRadius: BorderRadius.circular(16),
-                  color: theme.colorScheme.surfaceContainerLow,
+                  color: scheme.surfaceContainerLow,
                 ),
                 child: _selectedImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.file(
-                          File(_selectedImage!.path),
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
+                    ? Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.file(
+                              File(_selectedImage!.path),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.swap_horiz,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
                       )
                     : Center(
                         child: Column(
@@ -297,12 +425,20 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                           children: [
                             Icon(Icons.add_photo_alternate,
                                 size: 40,
-                                color: theme.colorScheme.onSurfaceVariant),
+                                color: scheme.onSurfaceVariant),
                             const SizedBox(height: 8),
                             Text(
-                              'اضغط لإضافة صورة',
+                              'اضغط لاختيار صورة',
                               style: TextStyle(
-                                color: theme.colorScheme.onSurfaceVariant,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'كاميرا أو معرض',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
                               ),
                             ),
                           ],

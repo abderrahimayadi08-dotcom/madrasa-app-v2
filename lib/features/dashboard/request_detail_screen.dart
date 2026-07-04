@@ -240,8 +240,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 ),
               ),
             ],
+            if (r['notes'] != null && (r['notes'] as String).isNotEmpty)
+              _infoRow(Icons.notes_outlined, 'ملاحظة', r['notes']),
             if (r['comment'] != null && (r['comment'] as String).isNotEmpty)
-              _infoRow(Icons.comment, 'ملاحظات', r['comment']),
+              _infoRow(Icons.comment, 'رد المدير', r['comment']),
             if (r['createdAt'] != null)
               _infoRow(Icons.calendar_today, 'التاريخ',
                   _formatDate(r['createdAt'])),

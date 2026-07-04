@@ -71,12 +71,16 @@ class NotificationService {
             'completed': 'تم إنجاز طلبك',
           };
           final title = statusLabels[status] ?? 'تحديث الطلب';
-          final body = '${data['itemName'] ?? ''}';
+          final notes = data['notes'] as String?;
+          final body = notes != null && notes.isNotEmpty
+              ? '${data['itemName'] ?? ''} - $notes'
+              : '${data['itemName'] ?? ''}';
           _saveAndShow(
             user.uid,
             title,
             body,
             data['category'] as String? ?? '',
+            data['priority'] as String? ?? 'medium',
             status,
           );
         }
@@ -94,9 +98,13 @@ class NotificationService {
         .then((doc) {
       if (!doc.exists) return;
       final role = doc.data()?['role'] as String?;
-      if (role == null ||
-          (role != 'finance_manager' && role != 'maintenance_manager')) return;
-      _listenForNewRequests(role, user.uid);
+      if (role == null) return;
+
+      if (role == 'general_manager') {
+        _listenForAllRequests(user.uid);
+      } else if (role == 'finance_manager' || role == 'maintenance_manager') {
+        _listenForNewRequests(role, user.uid);
+      }
     });
   }
 
@@ -115,12 +123,46 @@ class NotificationService {
           final title = data['category'] == 'purchase'
               ? 'طلب شراء جديد'
               : 'طلب صيانة جديد';
-          final body = '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''}';
+          final notes = data['notes'] as String?;
+          final body = notes != null && notes.isNotEmpty
+              ? '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''} - $notes'
+              : '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''}';
           _saveAndShow(
             uid,
             title,
             body,
             data['category'] as String? ?? '',
+            data['priority'] as String? ?? 'medium',
+            'pending',
+          );
+        }
+      }
+    });
+  }
+
+  static void _listenForAllRequests(String uid) {
+    _subscription?.cancel();
+    _subscription = FirebaseFirestore.instance
+        .collection('requests')
+        .snapshots()
+        .listen((snapshot) {
+      for (final change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added &&
+            !_knownIds.contains(change.doc.id)) {
+          _knownIds.add(change.doc.id);
+          final data = change.doc.data() as Map<String, dynamic>;
+          final cat = data['category'] == 'purchase' ? 'شراء' : 'صيانة';
+          final title = 'طلب $cat جديد';
+          final notes = data['notes'] as String?;
+          final body = notes != null && notes.isNotEmpty
+              ? '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''} - $notes'
+              : '${data['userName'] ?? 'عضو'}: ${data['itemName'] ?? ''}';
+          _saveAndShow(
+            uid,
+            title,
+            body,
+            data['category'] as String? ?? '',
+            data['priority'] as String? ?? 'medium',
             'pending',
           );
         }
@@ -133,6 +175,7 @@ class NotificationService {
     String title,
     String body,
     String category,
+    String priority,
     String status,
   ) async {
     try {
@@ -143,6 +186,7 @@ class NotificationService {
         'title': title,
         'body': body,
         'category': category,
+        'priority': priority,
         'status': status,
         'read': false,
         'createdAt': DateTime.now().toIso8601String(),

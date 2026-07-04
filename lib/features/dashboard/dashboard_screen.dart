@@ -36,11 +36,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
+  bool get _isGeneral => widget.user.isGeneralManager;
+
   String get _roleLabel =>
       widget.user.isFinanceManager ? 'finance_manager' : 'maintenance_manager';
 
   String get _title =>
-      widget.user.isFinanceManager ? 'طلبات الشراء' : 'طلبات الصيانة';
+      _isGeneral ? 'كل الطلبات'
+      : widget.user.isFinanceManager ? 'طلبات الشراء' : 'طلبات الصيانة';
 
   int _priorityValue(String p) {
     switch (p) {
@@ -149,7 +152,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _firestoreService.getRequestsByRole(_roleLabel),
+              stream: _isGeneral
+                  ? _firestoreService.getAllRequests()
+                  : _firestoreService.getRequestsByRole(_roleLabel),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(
@@ -242,6 +247,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final price = r['estimatedPrice'];
     final priceText =
         price != null && price != 0 ? '${price.toStringAsFixed(0)} د.ل' : null;
+    final notes = r['notes'] as String?;
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -355,6 +361,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ],
                   ),
+                  if (notes != null && notes.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.notes_outlined,
+                            size: 13, color: scheme.onSurfaceVariant),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            notes,
+                            style: TextStyle(
+                                fontSize: 12, color: scheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

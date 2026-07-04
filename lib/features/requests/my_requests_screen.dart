@@ -236,6 +236,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final priority = r['priority'] as String;
     final priColor = AppTheme.priorityColor(priority);
     final statColor = AppTheme.statusColor(status);
+    final notes = r['notes'] as String?;
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -320,6 +321,26 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     ),
                   ],
                 ),
+                if (notes != null && notes.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.notes_outlined,
+                          size: 13, color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          notes,
+                          style: TextStyle(
+                              fontSize: 12, color: scheme.onSurfaceVariant),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

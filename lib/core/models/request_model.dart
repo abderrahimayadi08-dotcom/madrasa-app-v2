@@ -13,6 +13,7 @@ class RequestModel {
   final String status;
   final String assignedRole;
   final String? comment;
+  final String? notes;
   final DateTime createdAt;
   final DateTime? reviewedAt;
 
@@ -31,6 +32,7 @@ class RequestModel {
     required this.status,
     required this.assignedRole,
     this.comment,
+    this.notes,
     required this.createdAt,
     this.reviewedAt,
   });
@@ -50,6 +52,7 @@ class RequestModel {
         'status': status,
         'assignedRole': assignedRole,
         'comment': comment,
+        'notes': notes,
         'createdAt': createdAt.toIso8601String(),
         'reviewedAt': reviewedAt?.toIso8601String(),
       };
@@ -71,6 +74,7 @@ class RequestModel {
         status: map['status'] as String,
         assignedRole: map['assignedRole'] as String,
         comment: map['comment'] as String?,
+        notes: map['notes'] as String?,
         createdAt: DateTime.parse(map['createdAt'] as String),
         reviewedAt: map['reviewedAt'] != null
             ? DateTime.parse(map['reviewedAt'] as String)

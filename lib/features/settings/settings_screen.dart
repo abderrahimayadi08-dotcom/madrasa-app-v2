@@ -225,11 +225,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _userCard(Map<String, dynamic> u) {
-    final roles = ['member', 'finance_manager', 'maintenance_manager'];
+    final roles = ['member', 'finance_manager', 'maintenance_manager', 'general_manager'];
     final labels = {
       'member': 'عضو',
       'finance_manager': 'مدير مالية',
       'maintenance_manager': 'مدير صيانة',
+      'general_manager': 'مدير عام',
     };
     final scheme = Theme.of(context).colorScheme;
     return Card(

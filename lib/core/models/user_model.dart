@@ -27,5 +27,7 @@ class UserModel {
 
   bool get isFinanceManager => role == 'finance_manager';
   bool get isMaintenanceManager => role == 'maintenance_manager';
+  bool get isGeneralManager => role == 'general_manager';
+  bool get isManager => isFinanceManager || isMaintenanceManager || isGeneralManager;
   bool get isMember => role == 'member';
 }

@@ -125,9 +125,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final scheme = Theme.of(context).colorScheme;
     final title = data['title'] as String? ?? '';
     final body = data['body'] as String? ?? '';
-    final icon = data['category'] == 'purchase'
+    final category = data['category'] as String? ?? '';
+    final priority = data['priority'] as String? ?? 'medium';
+    final priColor = AppTheme.priorityColor(priority);
+    final icon = category == 'purchase'
         ? Icons.shopping_cart
-        : data['category'] == 'maintenance'
+        : category == 'maintenance'
             ? Icons.build
             : Icons.notifications_outlined;
     final status = data['status'] as String? ?? '';
@@ -171,10 +174,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   decoration: BoxDecoration(
                     color: read
                         ? scheme.surfaceContainerLow
-                        : scheme.primaryContainer,
+                        : priColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, size: 20, color: scheme.primary),
+                  child: Icon(icon, size: 20, color: priColor),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -223,12 +226,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        _formatDate(createdAt),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: priColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDate(createdAt),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -32,6 +32,10 @@ class FirestoreService {
         .snapshots();
   }
 
+  Stream<QuerySnapshot> getAllRequests() {
+    return _firestore.collection('requests').snapshots();
+  }
+
   Future<void> updateRequestStatus(
       String requestId, String status, String? comment) async {
     try {

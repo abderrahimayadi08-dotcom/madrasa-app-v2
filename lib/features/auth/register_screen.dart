@@ -42,7 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context,
           MaterialPageRoute(
             builder: (_) =>
-                user.isFinanceManager || user.isMaintenanceManager
+                user.isManager
                     ? DashboardScreen(user: user)
                     : MyRequestsScreen(user: user),
           ),

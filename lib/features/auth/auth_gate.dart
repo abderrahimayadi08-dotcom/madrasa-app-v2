@@ -35,8 +35,7 @@ class AuthGate extends StatelessWidget {
             if (userModel == null) {
               return const LoginScreen();
             }
-            return userModel.isFinanceManager ||
-                    userModel.isMaintenanceManager
+            return userModel.isManager
                 ? DashboardScreen(user: userModel)
                 : MyRequestsScreen(user: userModel);
           },
