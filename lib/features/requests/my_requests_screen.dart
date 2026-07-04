@@ -72,6 +72,16 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                             size: 48, color: Colors.grey[400]),
                         const SizedBox(height: 12),
                         const Text('حدث خطأ في تحميل الطلبات'),
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            '${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey[500]),
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         OutlinedButton(
                           onPressed: () => setState(() {}),
