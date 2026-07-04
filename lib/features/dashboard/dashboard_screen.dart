@@ -214,13 +214,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'الكل: ${all.length} | بعد التصفية: ${docs.length}',
+                          'الكل: ${all.length} | بعد التصفية: ${docs.length} | الفلتر: $_filter',
                           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
                   );
                 }
+                return Center(
+                  child: Text(
+                    'عرض ${docs.length} طلب',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: scheme.primary),
+                  ),
+                );
                 return RefreshIndicator(
                   onRefresh: () async {},
                   child: ListView.builder(
