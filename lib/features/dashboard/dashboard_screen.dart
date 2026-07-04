@@ -246,11 +246,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _requestCard(QueryDocumentSnapshot r) {
-    final status = r['status'] as String;
-    final priority = r['priority'] as String;
+    final d = r.data()!;
+    final status = d['status'] as String;
+    final priority = d['priority'] as String;
     final priColor = AppTheme.priorityColor(priority);
     final statColor = AppTheme.statusColor(status);
-    final price = r['estimatedPrice'];
+    final price = d['estimatedPrice'];
     final priceText =
         price != null && price != 0 ? '${price.toStringAsFixed(0)} د.ل' : null;
     final scheme = Theme.of(context).colorScheme;
@@ -263,7 +264,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => RequestDetailScreen(
-              requestData: r.data() as Map<String, dynamic>,
+              requestData: d,
               requestId: r.id,
             ),
           ),
@@ -292,7 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              r['itemName'] as String,
+                              d['itemName'] as String,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -301,7 +302,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 2),
-                            Text(r['userName'] as String,
+                            Text(d['userName'] as String,
                                 style: TextStyle(
                                     fontSize: 13, color: scheme.onSurfaceVariant)),
                           ],
@@ -331,15 +332,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _metaChip(Icons.flag_outlined, AppTheme.priorityLabel(priority), priColor),
                       const SizedBox(width: 8),
                       _metaChip(
-                        r['category'] == 'purchase' ? Icons.shopping_cart : Icons.build,
-                        r['category'] == 'purchase' ? 'شراء' : 'صيانة',
+                        d['category'] == 'purchase' ? Icons.shopping_cart : Icons.build,
+                        d['category'] == 'purchase' ? 'شراء' : 'صيانة',
                         scheme.onSurfaceVariant,
                       ),
-                      if ((r['quantity'] as num?)?.toInt() != null &&
-                          (r['quantity'] as num).toInt() > 1) ...[
+                      if ((d['quantity'] as num?)?.toInt() != null &&
+                          (d['quantity'] as num).toInt() > 1) ...[
                         const SizedBox(width: 8),
                         _metaChip(Icons.numbers,
-                            'x${(r['quantity'] as num).toInt()}',
+                            'x${(d['quantity'] as num).toInt()}',
                             scheme.onSurfaceVariant),
                       ],
                     ],
@@ -352,7 +353,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 4),
                       Text(
                         DateFormat.yMd().format(
-                            DateTime.parse(r['createdAt'])),
+                            DateTime.parse(d['createdAt'] as String)),
                         style: TextStyle(
                             fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
