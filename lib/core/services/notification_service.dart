@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:madrasa_app/core/services/logger.dart';
+import 'package:madrasa_app/core/services/fcm_service.dart';
 
 class NotificationService {
   static final _localNotifications = FlutterLocalNotificationsPlugin();
@@ -95,10 +96,12 @@ class NotificationService {
         .collection('users')
         .doc(user.uid)
         .get()
-        .then((doc) {
+        .then((doc) async {
+      await FcmService.subscribeUserTopic(user.uid);
       if (!doc.exists) return;
       final role = doc.data()?['role'] as String?;
       if (role == null) return;
+      await FcmService.subscribeForRole(role);
 
       if (role == 'general_manager') {
         _listenForAllRequests(user.uid);

@@ -10,7 +10,10 @@ class FirestoreService {
       await _firestore
           .collection('requests')
           .doc(request.id)
-          .set(request.toMap());
+          .set({
+            ...request.toMap(),
+            'updatedAt': DateTime.now().toIso8601String(),
+          });
       Logger.info('Request created: ${request.id}');
     } catch (e) {
       Logger.error('Failed to create request: $e');
@@ -43,6 +46,7 @@ class FirestoreService {
         'status': status,
         'comment': comment,
         'reviewedAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
       });
       Logger.info('Request $requestId updated to $status');
     } catch (e) {
