@@ -16,7 +16,7 @@ class FcmService {
       ),
     );
     final perm = await _fcm.requestPermission();
-    if (!perm.authorized) {
+    if (perm.authorizationStatus == AuthorizationStatus.denied) {
       Logger.info('FCM permission not granted');
       return;
     }
