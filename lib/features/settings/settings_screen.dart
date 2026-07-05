@@ -81,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showError(e.message ?? 'كلمة السر خطأ');
     } catch (e) {
       Logger.error('Admin auth error: $e');
-      _showError('خطأ: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e.toString()}');
+      _showError('خطأ: $e');
     } finally {
       if (mounted) setState(() => _adminLoading = false);
     }
