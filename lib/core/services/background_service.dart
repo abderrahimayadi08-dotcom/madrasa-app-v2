@@ -27,12 +27,12 @@ class BackgroundService {
   static bool get isRunning => _running;
 
   static Future<void> start() async {
-    await _service.start();
+    _service.startService();
     _running = true;
   }
 
-  static Future<void> stop() async {
-    await _service.invoke('stopService');
+  static void stop() {
+    _service.invoke('stopService');
     _running = false;
   }
 
@@ -42,14 +42,10 @@ class BackgroundService {
       service.on('stopService').listen((_) {
         service.stopSelf();
       });
-      service.setForegroundServiceInfo(const NotificationInfo(
-        channelId: 'background_service',
-        channelName: 'خدمة الخلفية',
-        channelDescription: 'تبقي التطبيق شغال لتلقي الإشعارات',
-        notificationId: 888,
+      service.setForegroundNotificationInfo(
         title: 'madrasa-app',
         content: 'التطبيق شغال في الخلفية',
-      ));
+      );
     }
   }
 }
