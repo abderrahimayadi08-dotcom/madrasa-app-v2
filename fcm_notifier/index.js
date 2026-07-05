@@ -73,13 +73,13 @@ async function main() {
 async function sendFCM(topic, title, body, data) {
   const payload = {
     topic,
-    notification: { title, body },
     data: {
       title,
       body,
       category: data.category || '',
       priority: data.priority || 'medium',
       status: data.status || 'pending',
+      sticky: 'true',
     },
   };
   try {
