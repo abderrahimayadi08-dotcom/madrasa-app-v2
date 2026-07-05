@@ -75,7 +75,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'role': 'admin',
       }, SetOptions(merge: true));
       final snapshot = await _firestore.collection('users').get();
-      _users = snapshot.docs.map((d) => d.data()).toList();
+      _users = snapshot.docs.map((d) {
+        final data = d.data() as Map<String, dynamic>;
+        data['id'] = d.id;
+        return data;
+      }).toList();
       setState(() => _adminMode = true);
     } on auth.FirebaseAuthException catch (e) {
       _showError(e.message ?? 'كلمة السر خطأ');
