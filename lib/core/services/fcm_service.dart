@@ -45,14 +45,14 @@ class FcmService {
   }
 
   static void _handleForegroundMessage(RemoteMessage msg) {
-    final title = msg.notification?.title ?? msg.data['title'] ?? 'إشعار';
-    final body = msg.notification?.body ?? msg.data['body'] ?? '';
+    final title = msg.data['title'] ?? 'إشعار';
+    final body = msg.data['body'] ?? '';
     _showLocalNotif(title, body);
   }
 
   static Future<void> _handleBackgroundMessage(RemoteMessage msg) async {
-    final title = msg.notification?.title ?? msg.data['title'] ?? 'إشعار';
-    final body = msg.notification?.body ?? msg.data['body'] ?? '';
+    final title = msg.data['title'] ?? 'إشعار';
+    final body = msg.data['body'] ?? '';
     _showLocalNotif(title, body);
   }
 
@@ -67,6 +67,8 @@ class FcmService {
           'طلبات جديدة',
           importance: Importance.high,
           priority: Priority.high,
+          ongoing: true,
+          autoCancel: false,
         ),
       ),
     );
