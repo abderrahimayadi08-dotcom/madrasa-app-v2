@@ -326,7 +326,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (val) {
                 await BackgroundService.start();
               } else {
-                await BackgroundService.stop();
+                BackgroundService.stop();
               }
               setState(() {});
             },
