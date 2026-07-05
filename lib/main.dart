@@ -4,6 +4,7 @@ import 'package:madrasa_app/app.dart';
 import 'package:madrasa_app/core/services/logger.dart';
 import 'package:madrasa_app/core/services/notification_service.dart';
 import 'package:madrasa_app/core/services/fcm_service.dart';
+import 'package:madrasa_app/core/services/background_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,7 @@ void main() async {
     await Firebase.initializeApp();
     await NotificationService.init();
     await FcmService.init();
+    await BackgroundService.init();
     Logger.info('Firebase initialized');
   } catch (e) {
     Logger.error('Firebase init failed: $e');
