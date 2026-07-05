@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:madrasa_app/core/theme.dart';
 import 'package:madrasa_app/core/services/logger.dart';
+import 'package:madrasa_app/core/services/background_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _colorOptions = [
@@ -317,6 +318,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text('لضمان وصول الإشعارات حتى لو التطبيق مقفول، اتبع الخطوات التالية:',
               style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
           const SizedBox(height: 12),
+          SwitchListTile(
+            title: const Text('خدمة الخلفية'),
+            subtitle: const Text('تبقي التطبيق شغال لتلقي الإشعارات'),
+            value: BackgroundService.isRunning,
+            onChanged: (val) async {
+              if (val) {
+                await BackgroundService.start();
+              } else {
+                await BackgroundService.stop();
+              }
+              setState(() {});
+            },
+            secondary: Icon(
+              BackgroundService.isRunning ? Icons.notifications_active : Icons.notifications_off,
+            ),
+          ),
+          const SizedBox(height: 8),
           _settingsButton(
             Icons.info_outline,
             'فتح إعدادات التطبيق',
