@@ -136,31 +136,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       await intent.launch();
     } catch (e) {
-      _showError('افتح الإعدادات → التطبيقات → madrasa-app');
+      _showError('الإعدادات ← التطبيقات ← madrasa-app');
     }
   }
 
-  Future<void> _openBatterySettings() async {
+  Future<void> _requestBatteryExemption() async {
     try {
       const intent = AndroidIntent(
-        action: 'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+        action: 'android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS',
+        data: 'package:com.madrasa_app.app',
       );
       await intent.launch();
     } catch (e) {
-      _showError('افتح الإعدادات → البطارية → تقييد البطارية');
+      _showError('الإعدادات ← البطارية ← إدارة البطارية ← التطبيقات ← madrasa-app');
     }
   }
 
-  Future<void> _openXiaomiAutoStart() async {
-    try {
-      const intent = AndroidIntent(
-        action: 'miui.intent.action.OP_AUTO_START',
-        package: 'com.miui.securitycenter',
-      );
-      await intent.launch();
-    } catch (e) {
-      _showError('افتح يدوياً:\nالإعدادات → التطبيقات → madrasa-app → Auto-start');
-    }
+  void _showBackgroundGuide() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('تعليمات الخلفية'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _guideStep('1', 'الإعدادات ← التطبيقات ← madrasa-app ← الإشعارات', 'فعّل الإشعارات'),
+              _guideStep('2', 'الإعدادات ← البطارية', 'اختر "بدون تقييد"'),
+              _guideStep('3', 'شغّل Auto-start / التشغيل التلقائي', 'مهم جداً للرسائل'),
+              const Divider(height: 20),
+              Text('حسب جهازك:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('Samsung: الإعدادات ← العناية بالجهاز ← البطارية ← التطبيقات غير المراقبة'),
+              const SizedBox(height: 4),
+              Text('Xiaomi: الإعدادات ← التطبيقات ← إدارة التطبيقات ← madrasa-app ← Auto-start'),
+              const SizedBox(height: 4),
+              Text('Huawei: الإعدادات ← البطارية ← تشغيل التطبيقات ← madrasa-app'),
+              const SizedBox(height: 4),
+              Text('Oppo/Realme: الإعدادات ← البطارية ← إدارة البطارية ← madrasa-app'),
+              const SizedBox(height: 4),
+              Text('Honor: الإعدادات ← البطارية ← تشغيل التطبيقات ← madrasa-app'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('حسناً')),
+        ],
+      ),
+    );
+  }
+
+  Widget _guideStep(String num, String path, String action) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(radius: 10, child: Text(num, style: const TextStyle(fontSize: 11))),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(path, style: const TextStyle(fontSize: 13)),
+                Text(action, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.primary)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -268,7 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _sectionHeader(Icons.battery_charging_full, 'إعدادات الخلفية'),
           const SizedBox(height: 8),
-          Text('للحصول على الإشعارات يجب أن يبقى التطبيق شغال في الخلفية',
+          Text('لضمان وصول الإشعارات حتى لو التطبيق مقفول، اتبع الخطوات التالية:',
               style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
           const SizedBox(height: 12),
           _settingsButton(
@@ -280,13 +326,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _settingsButton(
             Icons.battery_saver,
             'إلغاء تقييد البطارية',
-            () => _openBatterySettings(),
+            () => _requestBatteryExemption(),
           ),
           const SizedBox(height: 8),
           _settingsButton(
-            Icons.power_settings_new,
-            'تفعيل Auto-start (Xiaomi)',
-            () => _openXiaomiAutoStart(),
+            Icons.help_outline,
+            'تعليمات لجميع الأجهزة',
+            () => _showBackgroundGuide(),
           ),
           const SizedBox(height: 28),
           const Padding(
