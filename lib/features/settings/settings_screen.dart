@@ -1,3 +1,4 @@
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
@@ -116,6 +117,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  Widget _settingsButton(IconData icon, String label, VoidCallback onTap) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 18),
+        label: Text(label, textAlign: TextAlign.center),
+      ),
+    );
+  }
+
+  Future<void> _openAppSettings() async {
+    try {
+      const intent = AndroidIntent(
+        action: 'android.settings.APPLICATION_DETAILS_SETTINGS',
+        data: 'package:com.madrasa_app.app',
+      );
+      await intent.launch();
+    } catch (e) {
+      _showError('افتح الإعدادات → التطبيقات → madrasa-app');
+    }
+  }
+
+  Future<void> _openBatterySettings() async {
+    try {
+      const intent = AndroidIntent(
+        action: 'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+      );
+      await intent.launch();
+    } catch (e) {
+      _showError('افتح الإعدادات → البطارية → تقييد البطارية');
+    }
+  }
+
+  Future<void> _openXiaomiAutoStart() async {
+    try {
+      const intent = AndroidIntent(
+        action: 'miui.intent.action.OP_AUTO_START',
+        package: 'com.miui.securitycenter',
+      );
+      await intent.launch();
+    } catch (e) {
+      _showError('افتح يدوياً:\nالإعدادات → التطبيقات → madrasa-app → Auto-start');
+    }
+  }
+
   @override
   void dispose() {
     _adminPasswordController.dispose();
@@ -214,7 +261,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             ..._users.map((u) => _userCard(u)),
           ],
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: DecorativeDivider(),
+          ),
+          _sectionHeader(Icons.battery_charging_full, 'إعدادات الخلفية'),
+          const SizedBox(height: 8),
+          Text('للحصول على الإشعارات يجب أن يبقى التطبيق شغال في الخلفية',
+              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          _settingsButton(
+            Icons.info_outline,
+            'فتح إعدادات التطبيق',
+            () => _openAppSettings(),
+          ),
+          const SizedBox(height: 8),
+          _settingsButton(
+            Icons.battery_saver,
+            'إلغاء تقييد البطارية',
+            () => _openBatterySettings(),
+          ),
+          const SizedBox(height: 8),
+          _settingsButton(
+            Icons.power_settings_new,
+            'تفعيل Auto-start (Xiaomi)',
+            () => _openXiaomiAutoStart(),
+          ),
+          const SizedBox(height: 28),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: DecorativeDivider(),
