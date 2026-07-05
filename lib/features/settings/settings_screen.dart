@@ -95,7 +95,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _updateRole(String userId, String newRole) async {
     try {
-      await _firestore.collection('users').doc(userId).update({'role': newRole});
+      await _firestore.collection('users').doc(userId).set({
+        'role': newRole,
+      }, SetOptions(merge: true));
       final idx = _users.indexWhere((u) => u['id'] == userId);
       if (idx != -1) {
         setState(() => _users[idx]['role'] = newRole);
