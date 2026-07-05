@@ -71,10 +71,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         auth.EmailAuthProvider.credential(email: user.email!, password: password),
       );
       if (!mounted) return;
-      await _firestore.collection('admins').doc(user.uid).set({
+      final userDoc = _firestore.collection('admins').doc(user.uid);
+      await userDoc.set({
         'email': user.email,
         'addedAt': DateTime.now().toIso8601String(),
-      });
+      }, SetOptions(merge: true));
       final snapshot = await _firestore.collection('users').get();
       _users = snapshot.docs.map((d) {
         final data = d.data() as Map<String, dynamic>;
